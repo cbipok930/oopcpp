@@ -10,10 +10,14 @@ int main(){
     s.age =16;
     s.weight =67;
     Key a;
-    while(true){
+    int i = 3;
+    while(i > 0){
         std::cin >> a;
         table.insert(a,s);
+        i--;
         }
+    Value uu = table.at("Lol");
+    std::cout << uu.age, uu.weight;
     std::cout << "Hello, World!" << std::endl;
     return 0;
 }

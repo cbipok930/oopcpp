@@ -15,8 +15,8 @@ typedef std::string Key;
 typedef Student Value;
 
 class HashTable{
-    typedef std::vector<std::list<std::pair<Key,Value>>> structure;
-    structure data;
+    typedef std::vector<std::list<std::pair<Key,Value>>> DataHash;
+    DataHash data;
     int cap;
 public:
     HashTable();
