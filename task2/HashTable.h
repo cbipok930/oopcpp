@@ -13,10 +13,11 @@ struct Student {
 };
 typedef std::string Key;
 typedef Student Value;
-
+typedef std::vector<std::list<std::pair<Key,Value>>> Structure;
+typedef std::list<std::pair<Key, Value>> Datalist;
+typedef std::pair<Key, Value> ListContent;
 class HashTable{
-    typedef std::vector<std::list<std::pair<Key,Value>>> DataHash;
-    DataHash data;
+    Structure data;
     int cap;
 public:
     HashTable();
@@ -57,5 +58,7 @@ public:
 
     friend bool operator==(const HashTable& a, const HashTable& b);
     friend bool operator!=(const HashTable& a, const HashTable& b);
+
+    void printHashTable();
 };
 #endif //TASK2_HASHTABLE_H
