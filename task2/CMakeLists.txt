@@ -3,5 +3,6 @@ project(task2)
 
 set(CMAKE_CXX_STANDARD 14)
 
-
-add_executable(task2 main.cpp HashTable.cpp HashTable.h)
+add_library(lib HashTable.cpp HashTable.h)
+add_executable(task2 main.cpp)
+target_link_libraries(task2 lib)

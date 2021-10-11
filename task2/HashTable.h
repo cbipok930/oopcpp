@@ -13,10 +13,11 @@ struct Student {
 };
 typedef std::string Key;
 typedef Student Value;
-
+typedef std::vector<std::list<std::pair<Key,Value>>> Structure;
+typedef std::list<std::pair<Key, Value>> Datalist;
+typedef std::pair<Key, Value> ListContent;
 class HashTable{
-    typedef std::vector<std::list<std::pair<Key,Value>>> structure;
-    structure data;
+    Structure data;
     int cap;
 public:
     HashTable();
