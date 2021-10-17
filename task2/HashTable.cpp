@@ -9,18 +9,11 @@
 #include <iostream>
 
 uint64_t hash_function(Key key, int cap){
-    uint64_t x;
-    x = (uint64_t)key.size();
-    for(Key::iterator it = key.begin();it != key.end(); it++){
-        x+= (uint64_t)*it;
-        x|= (uint64_t)*it%cap;
-    }
-    x &= key.size() * key.front();
-    x ^= key.back() - key.back() / 2;
-    x%= cap;
-    return x;
+    size_t hash = 5381;
+    for (Key::iterator it = key.begin(); it != key.end(); it++)
+        hash = ((hash << 5) + hash) + int(*it);
+    return hash%cap;
 }
-
 
 HashTable::HashTable(int capacity){
     HashTable::cap = capacity;

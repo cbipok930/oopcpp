@@ -5,12 +5,12 @@
 #include "HashTable.h"
 
 int main(int argc, char** argv){
-    HashTable table(4);
-    for(int i = 0; i <5; i++){
+    HashTable table(20);
+    for(int i = 0; i <6; i++){
         table.insert(argv[i +1],{(unsigned int)argv[i + 1][0] / 3, (unsigned int)argv[i + 1][0] * 2});
         }
     table.printHashTable();
-    auto *tbl2p = new HashTable(2);
+    auto *tbl2p = new HashTable(10);
     for (unsigned int i = 4; i > 1; i--){
         tbl2p->insert(argv[i], {28 - i, 75 + i * 2});
     }
