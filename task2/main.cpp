@@ -5,39 +5,38 @@
 #include "HashTable.h"
 
 int main(int argc, char** argv){
-    auto *table = new HashTable();
-    Value s;
-    s.age =16;
-    s.weight =67;
-    Key a;
-    for(int i = 0; i <2; i++){
-        a = argv[i +1];
-        table->insert(a,s);
+    HashTable table(4);
+    for(int i = 0; i <5; i++){
+        table.insert(argv[i +1],{(unsigned int)argv[i + 1][0] / 3, (unsigned int)argv[i + 1][0] * 2});
         }
-    bool meh = table->contains("Lol");
-    std::cout << meh <<'\n';
-    Value ee = table->at("Lol");
-    std::cout << ee.weight<<' '<< ee.age << '\n';
-//    std::cout << table->contains("DKDOFdsjofjsdfosdjfsd")<<'\n';
-//    Value none = table->at("DKDOFdsjofjsdfosdjfsd");
-    std::cout << "Hello, World!" << std::endl;
-//    table->erase("Lol");
-//    table->erase("Lol");
-//    table->erase("DKDOFdsjofjsdfosdjfsd");
-    auto *bla = new HashTable();
-    for(int i = 0; i <2; i++){
-        a = argv[i +1];
-        table->insert(a,s);
+    table.printHashTable();
+    auto *tbl2p = new HashTable(2);
+    for (unsigned int i = 4; i > 1; i--){
+        tbl2p->insert(argv[i], {28 - i, 75 + i * 2});
     }
-    bool da = ((*bla) == (*table));
-    bla->printHashTable();
-    table->printHashTable();
-    bla = table;
-    bool notda = ((*bla) != (*table));
-    std::cout << da <<"   " << notda <<'\n';
-    bla->insert("Mda", s);
-    table->printHashTable();
-    bla->printHashTable();
-    delete table;
+        tbl2p->printHashTable();
+    HashTable tbl3(table);
+        tbl3.printHashTable();
+    tbl3.insert("Net",{25, 74});
+        tbl3.printHashTable();
+    table.swap(tbl3);
+    table = std::move(tbl3);
+        table.printHashTable();
+    std::cout <<table.size() <<'\n' <<std::flush;
+    table = *tbl2p;
+    std::cout <<(table == *tbl2p) << '\n' <<std::flush;
+    tbl2p->insert("Rata", {21, 87});
+        table.printHashTable();
+        tbl2p->printHashTable();
+    Value a = table["Net"];
+    *tbl2p = table;
+    table.insert("Meh", {17,57});
+    tbl2p->printHashTable();
+    table.printHashTable();
+    table.clear();
+        table.printHashTable();
+    std::cout <<(table.empty()) <<std::flush;
+    delete &table;
+    delete &tbl2p;
     return 0;
 }

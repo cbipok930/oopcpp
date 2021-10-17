@@ -20,15 +20,15 @@ class HashTable{
     Structure data;
     int cap;
 public:
-    HashTable();
+    HashTable(int capacity = 16);
     ~HashTable();
 
     HashTable(const HashTable& b);
-    HashTable(HashTable&& b);
+    HashTable(HashTable&& b) noexcept;
 
 
     HashTable& operator=(const HashTable& b);
-    HashTable& operator=(HashTable&& b);
+    HashTable& operator=(HashTable&& b) noexcept;
 
 
     // Обменивает значения двух хэш-таблиц.

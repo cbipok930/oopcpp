@@ -8,7 +8,6 @@
 #include <stdexcept>
 #include <iostream>
 
-
 uint64_t hash_function(Key key, int cap){
     uint64_t x;
     x = (uint64_t)key.size();
@@ -22,91 +21,44 @@ uint64_t hash_function(Key key, int cap){
     return x;
 }
 
-HashTable::HashTable(){
-    HashTable::data.resize(16);
-    HashTable::cap = 4;
-}
-HashTable::~HashTable()= default;
 
-bool HashTable::erase(const Key &k) {
-    uint64_t index = hash_function(k, HashTable::cap) ;
-    Datalist &val_list = HashTable::data.at(index);
-    auto it = val_list.begin();
-    for (; (*it).first != k; it++) {
-        if (it == val_list.end() && (*it).first != k) {
-            return false;
-        }
-    }
-    val_list.erase(it);
-    return true;
+HashTable::HashTable(int capacity){
+    HashTable::cap = capacity;
+    HashTable::data.resize(HashTable::cap);
 }
-bool HashTable::insert(const Key &k, const Value &v) {
-    uint64_t index = hash_function(k, HashTable::cap) ;
-    Datalist &mylist = HashTable::data.at(index);
-    if(mylist.size() == mylist.max_size()){
-        mylist.resize(mylist.max_size() * 2);
-    }
-    try
-    {
-        mylist.push_front(std::pair<Key, Value>(k, v));
-    }
-    catch (std::bad_alloc& e) {
-        return false;
-    }
-    return true;
-}
-bool HashTable::contains(const Key &k) const {
-    int capacity = HashTable::cap;
-    uint64_t  hash = hash_function(k, capacity);
-    const Datalist* val_list = &(HashTable::data.at(hash));
-    if(val_list->empty()){
-        return false;
-    }
-    auto it = val_list->begin();
-    for (; (*it).first != k; it++) {
-        if (it == val_list->end() && (*it).first != k) {
-            return false;
-        }
-    }
-    return true;
-}
-
-Value&  HashTable::at(const Key& k){
-    int capacity = HashTable::cap;
-    uint64_t  hash = hash_function(k, capacity);
-    Datalist* val_list = &(HashTable::data.at(hash));
-    try
-    {
-        if(val_list->empty()){
-            throw -1;
-        }
-        auto it = val_list->begin();
-        for (; (*it).first != k; it++) {
-            if (it == val_list->end() && (*it).first != k) {
-                throw -1;
-            }
-        }
-        return (*it).second;
-    }
-    catch (int a)
-    {
-        std::cerr << "Couldn't find element by key" << '"' << k << '"';
-        std::exit(-1);
-    }
+HashTable::~HashTable(){
+    HashTable::data.clear();
+    HashTable::data.resize(0);
 }
 
 HashTable::HashTable(const HashTable &b) {
-    }
-
-HashTable::HashTable(HashTable &&b) {
-    }
-
-HashTable &HashTable::operator=(const HashTable &b) {
-    return const_cast<HashTable &>(b);
+    *this = b;
 }
 
-HashTable &HashTable::operator=(HashTable &&b) {
-    return b;
+HashTable::HashTable(HashTable &&b)  noexcept {
+    *this = b;
+    delete &b;
+}
+
+HashTable &HashTable::operator=(const HashTable &b) {
+    HashTable::cap = b.cap;
+    HashTable::data.clear();
+    HashTable::data.resize(HashTable::cap);
+    for (int i =0; i < b.cap; i++){
+        Datalist blist = b.data[i];;
+        auto itb = blist.begin();
+        while(itb != blist.end()){
+            (*this).insert(itb->first, {itb->second.age, itb->second.weight});
+            itb++;
+        }
+    }
+    return *this;
+}
+
+HashTable &HashTable::operator=(HashTable &&b)  noexcept {
+    *this = b;
+    delete &b;
+    return *this;
 }
 
 bool operator==(const HashTable& a, const HashTable& b){
@@ -139,13 +91,152 @@ bool operator!=(const HashTable& a, const HashTable& b){
     return !(a == b);
 }
 
-void HashTable::printHashTable() {
-    std::cout << HashTable::cap << '\n';
-    for(int i =0; i < HashTable::cap; i++){
-        std::cout <<'['<<i<<']'<<" ";
-        for(auto it = HashTable::data[i].begin(); it != HashTable::data[i].end(); it++ ){
-            std::cout << it->first << ": " <<'('<<it->second.age <<", "<<it->second.weight <<')' << "   ";
+void HashTable::swap(HashTable &b) {
+    HashTable tmp(*this);
+    *this = b;
+    b = tmp;
+    delete &tmp;
+}
+
+void HashTable::clear() {
+    HashTable::data.clear();
+    HashTable::data.resize(HashTable::cap);
+}
+
+bool HashTable::erase(const Key &k) {
+    uint64_t index = hash_function(k, HashTable::cap) ;
+    Datalist &val_list = HashTable::data.at(index);
+    auto it = val_list.begin();
+    for (; (*it).first != k; it++) {
+        if (it == val_list.end() && (*it).first != k) {
+            return false;
         }
-        std::cout << '\n';
+    }
+    val_list.erase(it);
+    return true;
+}
+bool HashTable::insert(const Key &k, const Value &v) {
+    uint64_t index = hash_function(k, HashTable::cap) ;
+    Datalist &mylist = HashTable::data.at(index);
+    if(mylist.size() == mylist.max_size()){
+        mylist.resize(mylist.max_size() * 2);
+    }
+    try
+    {
+        mylist.push_back(std::pair<Key, Value>(k, v));
+    }
+    catch (std::bad_alloc& e) {
+        return false;
+    }
+    return true;
+}
+bool HashTable::contains(const Key &k) const {
+    int capacity = HashTable::cap;
+    uint64_t  hash = hash_function(k, capacity);
+    const Datalist* val_list = &(HashTable::data.at(hash));
+    if(val_list->empty()){
+        return false;
+    }
+    auto it = val_list->begin();
+    for (; (*it).first != k; it++) {
+        if (it == val_list->end() && (*it).first != k) {
+            return false;
+        }
+    }
+    return true;
+}
+
+Value  &HashTable::operator[](const Key &k) {
+    if(this->contains(k)){
+        return this->at(k);
+    } else
+    {
+        this->insert(k, {0 , 0});
+        std::cout <<"Couldn't find element by key " <<k <<" in hashtable " <<this <<"\nValue is inserted"
+        <<std::flush;
+        return this->at(k);
     }
 }
+
+Value&  HashTable::at(const Key& k){
+    int capacity = HashTable::cap;
+    uint64_t  hash = hash_function(k, capacity);
+    Datalist* val_list = &(HashTable::data.at(hash));
+    try
+    {
+        if(val_list->empty()){
+            throw -1;
+        }
+        auto it = val_list->begin();
+        for (; (*it).first != k; it++) {
+            if (it == val_list->end() && (*it).first != k) {
+                throw -1;
+            }
+        }
+        return (*it).second;
+    }
+    catch (int a)
+    {
+        std::cerr << "Couldn't find element by key" << '"' << k << '"'<< std::flush;
+        std::exit(-1);
+    }
+}
+
+const Value &HashTable::at(const Key &k) const {
+    int capacity = HashTable::cap;
+    uint64_t  hash = hash_function(k, capacity);
+    const Datalist* val_list = &(HashTable::data.at(hash));
+    try
+    {
+        if(val_list->empty()){
+            throw -1;
+        }
+        auto it = val_list->begin();
+        for (; (*it).first != k; it++) {
+            if (it == val_list->end() && (*it).first != k) {
+                throw -1;
+            }
+        }
+        return (*it).second;
+    }
+    catch (int a)
+    {
+        std::cerr << "Couldn't find element by key" << '"' << k << '"'<< std::flush;
+        std::exit(-1);
+    }
+}
+
+size_t HashTable::size() const {
+    size_t size = 0;
+    for (auto lst = this->data.begin(); lst != this->data.end(); lst++) {
+        size += lst->size();
+    }
+    return size;
+}
+
+bool HashTable::empty() const {
+    HashTable tmp(*this);
+    tmp.clear();
+    if (tmp == *this){
+        delete &tmp;
+        return true;
+    }
+    else{
+        delete &tmp;
+        return false;
+    }
+}
+
+void HashTable::printHashTable() {
+    std::cout <<HashTable::cap <<"  " << this <<'\n'<< std::flush;
+    for(int i =0; i < HashTable::cap; i++){
+        std::cout <<'['<<i<<']'<<" "<< std::flush;
+        for(auto it = HashTable::data[i].begin(); it != HashTable::data[i].end(); it++ ){
+            std::cout << it->first << ": " <<'('<<it->second.age <<", "<<it->second.weight <<')' << "   " << std::flush;
+        }
+        std::cout << '\n'<< std::flush;
+    }
+}
+
+
+
