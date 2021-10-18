@@ -53,12 +53,15 @@ public:
     Value& at(const Key& k);
     const Value& at(const Key& k) const;
 
+    //Возвращает количество элементов в таблице
     size_t size() const;
+    //Проверка на пустоту
     bool empty() const;
 
     friend bool operator==(const HashTable& a, const HashTable& b);
     friend bool operator!=(const HashTable& a, const HashTable& b);
 
+    //Печатает таблицу
     void printHashTable();
 };
 #endif //TASK2_HASHTABLE_H

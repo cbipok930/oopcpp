@@ -1,7 +1,6 @@
 //
 // Created by alex_ on 03.10.2021.
 //
-#include <iostream>
 #include "HashTable.h"
 
 int main(int argc, char** argv){
