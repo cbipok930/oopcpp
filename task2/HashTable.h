@@ -7,6 +7,8 @@
 #include<vector>
 #include<string>
 #include<list>
+#include <iostream>
+#define LOAD_FACTOR 0.7
 struct Student {
     unsigned age;
     unsigned weight;
@@ -17,10 +19,15 @@ typedef std::vector<std::list<std::pair<Key,Value>>> Structure;
 typedef std::list<std::pair<Key, Value>> Datalist;
 typedef std::pair<Key, Value> ListContent;
 class HashTable{
+private:
     Structure data;
-    int cap;
+    size_t cap;
+    size_t size_prop;
 public:
-    HashTable(int capacity = 16);
+    // расширяет таблицу
+    bool rehash();
+
+    HashTable(size_t capacity = 16);
     ~HashTable();
 
     HashTable(const HashTable& b);
@@ -30,6 +37,8 @@ public:
     HashTable& operator=(const HashTable& b);
     HashTable& operator=(HashTable&& b) noexcept;
 
+    friend bool operator==(const HashTable& a, const HashTable& b);
+    friend bool operator!=(const HashTable& a, const HashTable& b);
 
     // Обменивает значения двух хэш-таблиц.
     void swap(HashTable& b);
@@ -55,12 +64,12 @@ public:
 
     //Возвращает количество элементов в таблице
     size_t size() const;
+    //Возвращает вместимость таблицы
+    size_t size_max() const;
     //Проверка на пустоту
     bool empty() const;
-
-    friend bool operator==(const HashTable& a, const HashTable& b);
-    friend bool operator!=(const HashTable& a, const HashTable& b);
-
+    //Заполняет переданный список значениями из таблицы
+    void get_contents(Datalist& v);
     //Печатает таблицу
     void printHashTable();
 };

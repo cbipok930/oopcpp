@@ -17,7 +17,14 @@ enable_testing()
 set(CMAKE_CXX_STANDARD 14)
 
 add_library(lib HashTable.cpp HashTable.h)
-add_executable(task2 test.cpp)
+
+set(MYDEBUG "OFF")
+
+if(MYDEBUG MATCHES "ON")
+    add_executable(task2 debug.cpp)
+else()
+    add_executable(task2 test.cpp)
+    target_link_libraries(task2 gtest_main)
+    #target_link_libraries(task2 string_times)
+endif()
 target_link_libraries(task2 lib)
-target_link_libraries(task2 gtest_main)
-#target_link_libraries(task2 string_times)

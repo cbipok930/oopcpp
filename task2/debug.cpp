@@ -4,7 +4,7 @@
 #include "HashTable.h"
 
 int main(int argc, char** argv){
-    HashTable table(20);
+    HashTable table(3);
     for(int i = 0; i <6; i++){
         table.insert(argv[i +1],{(unsigned int)argv[i + 1][0] / 3, (unsigned int)argv[i + 1][0] * 2});
         }

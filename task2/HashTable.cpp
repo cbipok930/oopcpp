@@ -4,19 +4,39 @@
 // студента, значением - произвольная структура (например, численные
 // характеристики студента.
 #include "HashTable.h"
-#include <exception>
 #include <stdexcept>
-#include <iostream>
 
-uint64_t hash_function(Key key, int cap){
+uint64_t hash_function(const Key& key, size_t cap){
     size_t hash = 5381;
-    for (Key::iterator it = key.begin(); it != key.end(); it++)
-        hash = ((hash << 5) + hash) + int(*it);
+    for (auto & it : key)
+        hash = ((hash << 5) + hash) + int(it);
     return hash%cap;
 }
 
-HashTable::HashTable(int capacity){
+bool HashTable::rehash() {
+    Datalist tmp;
+    for(auto lit: this->data){
+        for(auto it = lit.begin(); it != lit.end(); it++){
+            tmp.push_back(std::pair<std::string, Student>(it->first, it->second));
+        }
+    }
+    HashTable re(this->cap * 2);
+    if(re.cap != (this->cap * 2)){
+        std::cout <<"Couldn't rehash hashtable" <<this<<std::flush;
+        return false;
+    }
+    for(auto it: tmp){
+        re.insert(it.first, it.second);
+    }
+    *this = re;
+    delete &re;
+    tmp.clear();
+    return true;
+}
+
+HashTable::HashTable(size_t capacity){
     HashTable::cap = capacity;
+    HashTable::size_prop = 0;
     HashTable::data.resize(HashTable::cap);
 }
 HashTable::~HashTable(){
@@ -37,8 +57,9 @@ HashTable &HashTable::operator=(const HashTable &b) {
     HashTable::cap = b.cap;
     HashTable::data.clear();
     HashTable::data.resize(HashTable::cap);
+    HashTable::size_prop =0;
     for (int i =0; i < b.cap; i++){
-        Datalist blist = b.data[i];;
+        Datalist blist = b.data[i];
         auto itb = blist.begin();
         while(itb != blist.end()){
             (*this).insert(itb->first, {itb->second.age, itb->second.weight});
@@ -55,7 +76,8 @@ HashTable &HashTable::operator=(HashTable &&b)  noexcept {
 }
 
 bool operator==(const HashTable& a, const HashTable& b){
-    if(a.data.size() != b.data.size()){
+
+    if(a.size_prop != b.size_prop || a.data.size() != b.data.size()){
        return false;
     }
     else{
@@ -106,6 +128,7 @@ bool HashTable::erase(const Key &k) {
         }
     }
     val_list.erase(it);
+    this->size_prop -=1;
     return true;
 }
 bool HashTable::insert(const Key &k, const Value &v) {
@@ -121,12 +144,18 @@ bool HashTable::insert(const Key &k, const Value &v) {
     catch (std::bad_alloc& e) {
         return false;
     }
+    this->size_prop+=1;
+    if ((double)this->size_prop / (double)this->cap >= LOAD_FACTOR) {
+        bool suc = this->rehash();
+        if (!suc)
+            return false;
+    }
     return true;
 }
 bool HashTable::contains(const Key &k) const {
-    int capacity = HashTable::cap;
+    size_t capacity = this->cap;
     uint64_t  hash = hash_function(k, capacity);
-    const Datalist* val_list = &(HashTable::data.at(hash));
+    const Datalist* val_list = &(this->data.at(hash));
     if(val_list->empty()){
         return false;
     }
@@ -152,7 +181,7 @@ Value  &HashTable::operator[](const Key &k) {
 }
 
 Value&  HashTable::at(const Key& k){
-    int capacity = HashTable::cap;
+    size_t capacity = HashTable::cap;
     uint64_t  hash = hash_function(k, capacity);
     Datalist* val_list = &(HashTable::data.at(hash));
     try
@@ -171,12 +200,12 @@ Value&  HashTable::at(const Key& k){
     catch (int a)
     {
         std::cerr << "Couldn't find element by key" << '"' << k << '"'<< std::flush;
-        std::exit(-1);
+        throw -1;
     }
 }
 
 const Value &HashTable::at(const Key &k) const {
-    int capacity = HashTable::cap;
+    size_t capacity = HashTable::cap;
     uint64_t  hash = hash_function(k, capacity);
     const Datalist* val_list = &(HashTable::data.at(hash));
     try
@@ -200,23 +229,25 @@ const Value &HashTable::at(const Key &k) const {
 }
 
 size_t HashTable::size() const {
-    size_t size = 0;
-    for (auto lst = this->data.begin(); lst != this->data.end(); lst++) {
-        size += lst->size();
-    }
-    return size;
+    return this->size_prop;
+}
+
+size_t HashTable::size_max() const{
+    return this->cap;
 }
 
 bool HashTable::empty() const {
-    HashTable tmp(*this);
-    tmp.clear();
-    if (tmp == *this){
-        delete &tmp;
+    if(this->size_prop == 0)
         return true;
-    }
-    else{
-        delete &tmp;
+    else
         return false;
+}
+
+void HashTable::get_contents(Datalist& v){
+    for(auto lit: this->data){
+        for(auto it = lit.begin(); it != lit.end(); it++){
+            v.push_back(std::pair<std::string, Student>(it->first, it->second));
+        }
     }
 }
 
@@ -224,12 +255,10 @@ void HashTable::printHashTable() {
     std::cout <<HashTable::cap <<"  " << this <<'\n'<< std::flush;
     for(int i =0; i < HashTable::cap; i++){
         std::cout <<'['<<i<<']'<<" "<< std::flush;
-        for(auto it = HashTable::data[i].begin(); it != HashTable::data[i].end(); it++ ){
-            std::cout << it->first << ": " <<'('<<it->second.age <<", "<<it->second.weight <<')' << "   " << std::flush;
+        for(auto & it : HashTable::data[i]){
+            std::cout << it.first << ": " <<'('<<it.second.age <<", "<<it.second.weight <<')' << "   " << std::flush;
         }
         std::cout << '\n'<< std::flush;
     }
 }
-
-
 
