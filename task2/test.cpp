@@ -30,10 +30,11 @@ private:
     }
 };
 //Случайно заполняет таблицу FILL_AMOUNT ключами, удаляет их из глобального списка
-class Hashtable_FillData: public HashTable_CreateHT{
+class Hashtable_FillData: public ::testing::Test{
 public:
     Datalist kv_FillData;
     size_t size_FillData = FILL_AMOUNT;
+    HashTable *ht;
 private:
     void SetUp() override {
         using namespace std;
@@ -42,7 +43,7 @@ private:
             Key key_ = names_dat[i];
             ListContent kv;
             kv.first = key_;
-            kv.second = {size_t((abs(rand()) + 18) % 31), size_t((abs(rand()) + 50) % 150)};
+            kv.second = {(unsigned int)((abs(rand()) + 18) % 31), (unsigned int)((abs(rand()) + 50) % 150)};
             bool suc = ht->insert(kv.first, kv.second);
             EXPECT_EQ(true, suc);
             kv_FillData.push_back(ListContent(kv));
@@ -60,6 +61,14 @@ TEST_F(HashTable_CreateHT, EmptyHT){
     Datalist val_list;
     ht->get_contents(val_list);
     EXPECT_EQ(0, val_list.size());
+}
+
+TEST_F(HashTable_CreateHT, HTprops){
+    for(int i = 0; i < 5; i++){
+       EXPECT_TRUE(ht->insert(names_dat[i], {unsigned(rand() % 150 + 40) , unsigned(rand() % 150 + 40)}));
+    }
+    EXPECT_TRUE(ht->size() == 5);
+    EXPECT_TRUE(ht->size_max() > ht->size());
 }
 
 TEST_F(Hashtable_FillData, ComapreEqHTs){
@@ -85,6 +94,17 @@ TEST_F(Hashtable_FillData, CheckHT_content){
     for(const auto& it : kv_FillData){
         EXPECT_TRUE(ht->contains(it.first));
     }
+}
+TEST_F(Hashtable_FillData, 2HT_test){
+    HashTable b = *ht;
+    for (int i = 0; i < 4; i++)
+        EXPECT_TRUE(b.erase(names_dat[i]));
+    EXPECT_FALSE(b.erase("that_key_not_belong"));
+    EXPECT_TRUE(b.insert("test_key", {45, 78}));
+    EXPECT_TRUE(b != (*ht));
+    ht->swap(b);
+    EXPECT_TRUE(ht->contains("test_key"));
+    EXPECT_GT(b.size(), ht->size());
 }
 int main(int argc, char** argv){
     testing::InitGoogleTest(&argc, argv);

@@ -28,9 +28,8 @@ bool HashTable::rehash() {
     for(auto it: tmp){
         re.insert(it.first, it.second);
     }
-    *this = re;
-    delete &re;
     tmp.clear();
+    *this = re;
     return true;
 }
 
@@ -39,10 +38,7 @@ HashTable::HashTable(size_t capacity){
     HashTable::size_prop = 0;
     HashTable::data.resize(HashTable::cap);
 }
-HashTable::~HashTable(){
-    HashTable::data.clear();
-    HashTable::data.resize(0);
-}
+HashTable::~HashTable() = default;
 
 HashTable::HashTable(const HashTable &b) {
     *this = b;
