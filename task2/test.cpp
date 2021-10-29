@@ -71,6 +71,27 @@ TEST_F(HashTable_CreateHT, HTprops){
     EXPECT_TRUE(ht->size_max() > ht->size());
 }
 
+TEST_F(HashTable_CreateHT, HTaddData){
+    ht->insert("first", {10, 10});
+    ht->insert("second", {23, 17});
+    Value sec = ht->at("second");
+    EXPECT_EQ(sec.age, 23);
+    EXPECT_EQ(sec.weight, 17);
+    Value fst = (*ht)["first"];
+    EXPECT_EQ(fst.age, fst.weight);
+    Value thd = (*ht)["third"];
+    EXPECT_TRUE(ht->size() == 3);
+}
+
+TEST_F(Hashtable_FillData, ClearHT){
+    EXPECT_FALSE(ht->empty());
+    ht->clear();
+    EXPECT_TRUE(ht->empty());
+    Datalist content;
+    ht->get_contents(content);
+    EXPECT_TRUE(content.empty());
+}
+
 TEST_F(Hashtable_FillData, ComapreEqHTs){
     HashTable ht1 = *ht;
     HashTable ht2 = *ht;
@@ -112,7 +133,6 @@ int main(int argc, char** argv){
 //    list<Key> names_dat_list;
 //    for(int i = 0; i < NAMES_CNT; i++)
 //        names_dat_list.push_back(names_dat[i]);
-
 
     return RUN_ALL_TESTS();
 }

@@ -112,6 +112,7 @@ void HashTable::swap(HashTable &b) {
 void HashTable::clear() {
     HashTable::data.clear();
     HashTable::data.resize(HashTable::cap);
+    HashTable::size_prop = 0;
 }
 
 bool HashTable::erase(const Key &k) {
@@ -240,6 +241,7 @@ bool HashTable::empty() const {
 }
 
 void HashTable::get_contents(Datalist& v){
+    v.clear();
     for(auto lit: this->data){
         for(auto it = lit.begin(); it != lit.end(); it++){
             v.push_back(std::pair<std::string, Student>(it->first, it->second));
