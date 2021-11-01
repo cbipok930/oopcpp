@@ -5,6 +5,7 @@
 #include "Config.h"
 
 Config::Config() {
+    this->descriptions.clear();
     std::cout << "Config is created\n";
 }
 
@@ -29,6 +30,8 @@ void parseArgs(ArgList &args,std::string::iterator *itp){
 }
 //Заполняет поля класса Config в соответствии с данными в файле
 void Config::prepareConfigData(const std::string& config_name) {
+    this->id_order.clear();
+    this->descriptions.clear();
     using namespace std;
     string word;
     ifstream config(config_name);

@@ -8,42 +8,63 @@
 #include <fstream>
 #include <sstream>
 #include <cstdarg>
+#include <typeinfo>
 #ifndef TASK3_FABRIC_H
 #define TASK3_FABRIC_H
 typedef std::list<std::string> Args;
 class BlockAbstract{
 public:
+    std::string block_info();
+    //текст, который блок хранит блок
     std::string text;
     BlockAbstract() = default;
-    virtual std::string block_method(Args argv);
-    virtual void void_block_method(Args argv);
 };
 class CreatorAbstract{
 public:
+    //строковый id блока
     std::string block;
-    CreatorAbstract(){
-        this->block = "";
-    };
-    virtual BlockAbstract* createBlock(std::string text, Args argv);
+    //необходимо ли блоку приниать параметры
+    bool list_of_args;
+    //необходимо ли блоку принимать текст
+    bool content;
+    CreatorAbstract();
+    //создаёт блок
+    virtual BlockAbstract* createBlock(...);
 };
 
 
 class BlockReadFile : public BlockAbstract{
 public:
-    explicit BlockReadFile(Args* argvp);
-    std::string block_method(Args argv) override;
+    /*(*pargv) должен содержать имя файла*/
+    explicit BlockReadFile(Args* pargv);
 };
 class CreatorReadFile : public CreatorAbstract{
 public:
-    CreatorReadFile(){
-        this->block = "readfile";
-    }
-    BlockReadFile* createBlock(std::string text, Args argv) override;
+    CreatorReadFile();
+    //необходим указатель на std::list<string>, где хранится имя файла
+    BlockReadFile* createBlock(...) override;
 };
 
 
-class BlockWriteFile : public BlockAbstract{
+class BlockSort : public BlockAbstract{
 public:
-    void void_block_method(Args argv) override;
+    explicit BlockSort(std::string* text);
+};
+class CreatorSort : public CreatorAbstract{
+public:
+    CreatorSort();
+    //необходим указатель на std::string
+    BlockSort* createBlock(...) override;
+};
+
+
+class BlockReplace : public BlockAbstract{
+public:
+    BlockReplace(std::string* text, Args* pargv);
+};
+class CreatorReplace : public CreatorAbstract{
+public:
+    CreatorReplace();
+    BlockReplace* createBlock(...) override;
 };
 #endif //TASK3_FABRIC_H

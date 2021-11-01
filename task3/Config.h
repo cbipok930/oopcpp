@@ -5,8 +5,8 @@
 #include <list>
 #include <fstream>
 #include <iostream>
-#ifndef TASK3_WORKER_H
-#define TASK3_WORKER_H
+#ifndef TASK3_CONFIG_H
+#define TASK3_CONFIG_H
 struct Description;
 typedef std::list<std::string> ArgList;
 typedef std::string String;
@@ -24,4 +24,4 @@ public:
     Config();
     void prepareConfigData(const std::string& config_name);
 };
-#endif //TASK3_WORKER_H
+#endif //TASK3_CONFIG_H
