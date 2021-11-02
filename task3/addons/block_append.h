@@ -1,7 +1,7 @@
 //
 // Created by alex_ on 02.11.2021.
 //
-#include "../Fabric.h"
+#include "../workflow/block_factory/Fabric.h"
 #ifndef TASK3_BLOCK_APPEND_H
 #define TASK3_BLOCK_APPEND_H
 class BlockAppend : public BlockAbstract{
@@ -11,7 +11,7 @@ public:
 class CreatorAppend : public CreatorAbstract{
 public:
     CreatorAppend();
-    BlockAppend* createBlock(...);
+    BlockAppend* createBlock(std::string* txt, Args* pargv) override;
 };
 
 

@@ -32,7 +32,7 @@ public:
     bool content;
     CreatorAbstract();
     //создаёт блок
-    virtual BlockAbstract* createBlock(...);
+    virtual BlockAbstract* createBlock(std::string* txt, Args* pargv);
 };
 
 
@@ -45,7 +45,7 @@ class CreatorReadFile : public CreatorAbstract{
 public:
     CreatorReadFile();
     //необходим указатель на std::list<string>, где хранится имя файла
-    BlockReadFile* createBlock(...) override;
+    BlockReadFile* createBlock(std::string* txt, Args* pargv) override;
 };
 
 
@@ -58,7 +58,7 @@ class CreatorSort : public CreatorAbstract{
 public:
     CreatorSort();
     //необходим указатель на std::string
-    BlockSort* createBlock(...) override;
+    BlockSort* createBlock(std::string* txt, Args* pargv) override;
 };
 
 
@@ -76,7 +76,7 @@ public:
      * 1 параметром необходим указатель на std::string
      * 2 параметром необходим указатель на std::list<string>
      * */
-    BlockReplace* createBlock(...) override;
+    BlockReplace* createBlock(std::string* txt, Args* pargv) override;
 };
 
 
@@ -94,6 +94,6 @@ public:
      * 1 параметром необходим указатель на std::string
      * 2 параметром необходим указатель на std::list<string>
      * */
-    BlockWriteFile* createBlock(...) override;
+    BlockWriteFile* createBlock(std::string* txt, Args* pargv) override;
 };
 #endif //TASK3_FABRIC_H

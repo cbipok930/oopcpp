@@ -5,7 +5,31 @@
 #include "block_append.h"
 
 BlockAppend::BlockAppend(std::string *txt, Args *pargv) {
-
+    using namespace std;
+    string new_text = *txt;
+    Args argv = *pargv;
+    if (argv.empty())
+        this->text = new_text;
+    else{
+        bool newline = false;
+        if (new_text.back() == '\n')
+            newline = true;
+        for(auto it = argv.begin(); it != argv.end(); it++){
+            if(*it == "\\n") {
+                new_text.append("\n");
+                newline = true;
+            }
+            else{
+                if(newline) {
+                    new_text.append(*it);
+                    newline = false;
+                }
+                else
+                    new_text.append(" " + *it);
+            }
+        }
+    }
+    this->text = new_text;
 }
 
 CreatorAppend::CreatorAppend() {
@@ -14,11 +38,7 @@ CreatorAppend::CreatorAppend() {
     this->block = "append";
 }
 
-BlockAppend *CreatorAppend::createBlock(...) {
-    va_list params;
-    va_start(params, list_of_args);
-    std::string* txt = va_arg(params, std::string*);
-    Args *pargv = va_arg(params, Args*);
+BlockAppend *CreatorAppend::createBlock(std::string* txt, Args* pargv) {
     auto blk = new BlockAppend(txt, pargv);
     return blk;
 }

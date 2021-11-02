@@ -7,7 +7,7 @@ CreatorAbstract::CreatorAbstract() {
     this->list_of_args = false;
     this->content = false;
 }
-BlockAbstract *CreatorAbstract::createBlock(...) {
+BlockAbstract *CreatorAbstract::createBlock(std::string* txt, Args* pargv) {
     auto blk = new BlockAbstract();
     return blk;
 }
@@ -51,11 +51,8 @@ CreatorReadFile::CreatorReadFile() {
     this->list_of_args = true;
     this->block = "readfile";
 }
-BlockReadFile *CreatorReadFile::createBlock(...) {
-    va_list params;
-    va_start(params, this->list_of_args);
-    Args* plist = va_arg(params, Args*);
-    auto blk = new BlockReadFile(plist);
+BlockReadFile *CreatorReadFile::createBlock(std::string* txt, Args* pargv) {
+    auto blk = new BlockReadFile(pargv);
     return blk;
 }
 
@@ -83,11 +80,8 @@ CreatorSort::CreatorSort() {
     this->list_of_args = false;
     this->block = "sort";
 }
-BlockSort *CreatorSort::createBlock(...) {
-    va_list params;
-    va_start(params, this->list_of_args);
-    std::string* pst = va_arg(params, std::string*);
-    auto blk = new BlockSort(pst);
+BlockSort *CreatorSort::createBlock(std::string* txt, Args* pargv) {
+    auto blk = new BlockSort(txt);
     return blk;
 }
 
@@ -116,6 +110,10 @@ BlockReplace::BlockReplace(std::string *text, Args *pargv) {
         auto it = txt_content.find(" "+w_origin+"\n");
         txt_content.replace(it,(" "+w_origin+"\n").length(),(" "+w_new+"\n"));
     }
+    while(txt_content.find(" "+w_origin + *txt_content.end()) !=string::npos){
+        auto it = txt_content.find(" "+w_origin+ *txt_content.end());
+        txt_content.replace(it,(" "+w_origin+ *txt_content.end()).length(),(" "+w_new+ *txt_content.end()));
+    }
     this->text = txt_content;
 }
 CreatorReplace::CreatorReplace() {
@@ -123,12 +121,8 @@ CreatorReplace::CreatorReplace() {
     this->content = true;
     this->block = "replace";
 }
-BlockReplace *CreatorReplace::createBlock(...) {
-    va_list params;
-    va_start(params, this->list_of_args);
-    std::string * pst = va_arg(params, std::string*);
-    Args * pargv = va_arg(params, Args*);
-    auto blk = new BlockReplace(pst, pargv);
+BlockReplace *CreatorReplace::createBlock(std::string* txt, Args* pargv) {
+    auto blk = new BlockReplace(txt, pargv);
     return blk;
 }
 
@@ -158,11 +152,7 @@ CreatorWriteFile::CreatorWriteFile() {
     this->content = true;
     this->block = "writefile";
 }
-BlockWriteFile *CreatorWriteFile::createBlock(...) {
-    va_list params;
-    va_start(params, this->list_of_args);
-    std::string * pst = va_arg(params, std::string*);
-    Args* pargv = va_arg(params, Args*);
-    auto blk = new BlockWriteFile(pst, pargv);
+BlockWriteFile *CreatorWriteFile::createBlock(std::string* txt, Args* pargv) {
+    auto blk = new BlockWriteFile(txt, pargv);
     return blk;
 }

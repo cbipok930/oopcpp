@@ -4,8 +4,8 @@
 #ifndef TASK3_WORKER_H
 #define TASK3_WORKER_H
 #pragma once
-#include "Fabric.h"
-#include "Config.h"
+#include "block_factory/Fabric.h"
+#include "configuration/Config.h"
 typedef std::list<CreatorAbstract*> CreatorsList;
 class Worker{
 public:
