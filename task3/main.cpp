@@ -3,7 +3,7 @@ int main() {
     auto cfg = new Config;
     cfg->prepareConfigData("..\\mycfg");
     CreatorsList crts;
-    for(int i = 0; i <= 2; i++){
+    for(int i = 0; i <= 3; i++){
         CreatorAbstract *c;
         int k = i;
         switch(k)
@@ -16,6 +16,9 @@ int main() {
                 break;
             case 2:
                 c = new CreatorReplace;
+                break;
+            case 3:
+                c = new CreatorWriteFile;
                 break;
         }
         crts.push_back(c);

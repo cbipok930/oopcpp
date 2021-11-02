@@ -9,13 +9,16 @@
 #include <sstream>
 #include <cstdarg>
 #include <typeinfo>
+#include <vector>
+#include <algorithm>
 #ifndef TASK3_FABRIC_H
 #define TASK3_FABRIC_H
 typedef std::list<std::string> Args;
 class BlockAbstract{
 public:
-    std::string block_info();
-    //текст, который блок хранит блок
+    //Возвращает строку с адресом объекта и доп.текстом(параметр)
+    std::string block_info(std::string str);
+    //текст, который хранит блок
     std::string text;
     BlockAbstract() = default;
 };
@@ -35,7 +38,7 @@ public:
 
 class BlockReadFile : public BlockAbstract{
 public:
-    /*(*pargv) должен содержать имя файла*/
+    //pargv: указатель на список, где первый элемент это имя файла
     explicit BlockReadFile(Args* pargv);
 };
 class CreatorReadFile : public CreatorAbstract{
@@ -48,6 +51,7 @@ public:
 
 class BlockSort : public BlockAbstract{
 public:
+    //text: указатель
     explicit BlockSort(std::string* text);
 };
 class CreatorSort : public CreatorAbstract{
@@ -60,11 +64,36 @@ public:
 
 class BlockReplace : public BlockAbstract{
 public:
+    /*
+     * text: указатель
+     * pargv: указаетль на список с как минимум двумя параметрами*/
     BlockReplace(std::string* text, Args* pargv);
 };
 class CreatorReplace : public CreatorAbstract{
 public:
     CreatorReplace();
+    /*
+     * 1 параметром необходим указатель на std::string
+     * 2 параметром необходим указатель на std::list<string>
+     * */
     BlockReplace* createBlock(...) override;
+};
+
+
+class BlockWriteFile : public BlockAbstract{
+public:
+    /*
+     * text: указатель
+     * pargv: указатель на список, где первый элемент это имя файла*/
+    BlockWriteFile(std::string* text, Args* pargv);
+};
+class CreatorWriteFile : public CreatorAbstract{
+public:
+    CreatorWriteFile();
+    /*
+     * 1 параметром необходим указатель на std::string
+     * 2 параметром необходим указатель на std::list<string>
+     * */
+    BlockWriteFile* createBlock(...) override;
 };
 #endif //TASK3_FABRIC_H

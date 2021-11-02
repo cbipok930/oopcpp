@@ -2,7 +2,6 @@
 // Created by alex_ on 01.11.2021.
 //
 #include "Worker.h"
-#include <algorithm>
 
 Worker::Worker(CreatorsList *ctrs, Config *cfg) {
     this->configuration = cfg;
@@ -29,6 +28,7 @@ std::string Worker::produce() {
         auto creator_it = find_if(ctrs.begin(), ctrs.end(), [&block_string_id] (CreatorAbstract* c) {return c->block == block_string_id;});
         if (creator_it == ctrs.end())
             throw invalid_argument("No such a block \"" + block_string_id + "\"\n");
+        cout <<"Creator id-"<< to_string(*cv) <<" \""<<(*creator_it)->block<<"\" starts\n";
         if((*creator_it)->list_of_args && (*creator_it)->content){
             Args args_to_block = cv_block->args;
             auto blk = (*creator_it)->createBlock(&text_content, &args_to_block);
@@ -42,6 +42,7 @@ std::string Worker::produce() {
             auto blk = (*creator_it)->createBlock(&text_content);
             text_content = blk->text;
         }
+        cout<<"success\n";
     }
     return text_content;
 }
