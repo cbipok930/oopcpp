@@ -1,17 +1,17 @@
 //
 // Created by alex_ on 01.11.2021.
 //
-#ifndef TASK3_WORKER_H
-#define TASK3_WORKER_H
+#ifndef TASK3_FACTORY_H
+#define TASK3_FACTORY_H
 #pragma once
-#include "block_factory/Fabric.h"
+#include "workshop/Bench.h"
 #include "configuration/Config.h"
 typedef std::list<CreatorAbstract*> CreatorsList;
-class Worker{
+class Factory{
 public:
     CreatorsList* creators;
     Config* configuration;
-    Worker(CreatorsList* ctrs, Config* cfg);
+    Factory(CreatorsList* ctrs, Config* cfg);
     std::string produce();
 };
-#endif //TASK3_WORKER_H
+#endif //TASK3_FACTORY_H

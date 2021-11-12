@@ -2,40 +2,9 @@
 // Created by alex_ on 31.10.2021.
 //
 #pragma once
-#include <string>
-#include <list>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstdarg>
-#include <typeinfo>
-#include <vector>
-#include <algorithm>
 #ifndef TASK3_FABRIC_H
 #define TASK3_FABRIC_H
-typedef std::list<std::string> Args;
-class BlockAbstract{
-public:
-    //Возвращает строку с адресом объекта и доп.текстом(параметр)
-    std::string block_info(std::string str);
-    //текст, который хранит блок
-    std::string text;
-    BlockAbstract() = default;
-};
-class CreatorAbstract{
-public:
-    //строковый id блока
-    std::string block;
-    //необходимо ли блоку приниать параметры
-    bool list_of_args;
-    //необходимо ли блоку принимать текст
-    bool content;
-    CreatorAbstract();
-    //создаёт блок
-    virtual BlockAbstract* createBlock(std::string* txt, Args* pargv);
-};
-
-
+#include "..\workshop\Bench.h"
 class BlockReadFile : public BlockAbstract{
 public:
     //pargv: указатель на список, где первый элемент это имя файла
@@ -95,5 +64,41 @@ public:
      * 2 параметром необходим указатель на std::list<string>
      * */
     BlockWriteFile* createBlock(std::string* txt, Args* pargv) override;
+};
+
+
+class BlockGrep : public BlockAbstract{
+public:
+    /*
+     * text: указатель
+     * pargv: указатель на список, где первый элемент это нужное слово*/
+    BlockGrep(std::string* text, Args* pargv);
+};
+class CreatorGrep : public CreatorAbstract{
+public:
+    CreatorGrep();
+    /*
+     * 1 параметром необходим указатель на std::string
+     * 2 параметром необходим указатель на std::list<string>
+     * */
+    BlockGrep* createBlock(std::string* txt, Args* pargv) override;
+};
+
+
+class BlockDump : public BlockAbstract{
+public:
+    /*
+     * text: указатель
+     * pargv: указатель на список, где первый элемент это имя файла*/
+    BlockDump(std::string* text, Args* pargv);
+};
+class CreatorDump : public CreatorAbstract{
+public:
+    CreatorDump();
+    /*
+     * 1 параметром необходим указатель на std::string
+     * 2 параметром необходим указатель на std::list<string>
+     * */
+    BlockDump* createBlock(std::string* txt, Args* pargv) override;
 };
 #endif //TASK3_FABRIC_H

@@ -1,10 +1,12 @@
-#include "workflow/Worker.h"
+#include "workflow/Factory.h"
+#include "workflow/benches/benches_std.h"
 #include "addons/block_append.h"
 int main() {
     auto cfg = new Config;
     cfg->prepareConfigData("..\\mycfg");
     CreatorsList crts;
-    for(int i = 0; i <= 4; i++){
+    //быстро заполняем список необходимыми creator'ами
+    for(int i = 0; i <= 6; i++){
         CreatorAbstract *c;
         int k = i;
         switch(k)
@@ -24,10 +26,16 @@ int main() {
             case 4:
                 c = new CreatorAppend;
                 break;
+            case 5:
+                c = new CreatorGrep;
+                break;
+            case 6:
+                c = new CreatorDump;
+                break;
         }
         crts.push_back(c);
     }
-    auto wk = Worker(&crts, cfg);
+    auto wk = Factory(&crts, cfg);
     std::string  ea = wk.produce();
 //    auto blk = ct.createBlock(&arguments);
 //    std::string ea = blk->text;

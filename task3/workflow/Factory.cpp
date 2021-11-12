@@ -1,14 +1,14 @@
 //
 // Created by alex_ on 01.11.2021.
 //
-#include "Worker.h"
+#include "Factory.h"
 
-Worker::Worker(CreatorsList *ctrs, Config *cfg) {
+Factory::Factory(CreatorsList *ctrs, Config *cfg) {
     this->configuration = cfg;
     this->creators = ctrs;
 }
 
-std::string Worker::produce() {
+std::string Factory::produce() {
     using namespace std;
     if(this->configuration->descriptions.empty())
         throw invalid_argument("Empty configuration\n");

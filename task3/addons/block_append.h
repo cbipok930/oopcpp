@@ -1,7 +1,7 @@
 //
 // Created by alex_ on 02.11.2021.
 //
-#include "../workflow/block_factory/Fabric.h"
+#include "../workflow/workshop/Bench.h"
 #ifndef TASK3_BLOCK_APPEND_H
 #define TASK3_BLOCK_APPEND_H
 class BlockAppend : public BlockAbstract{

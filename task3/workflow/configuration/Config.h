@@ -1,12 +1,12 @@
 //
 // Created by alex_ on 30.10.2021.
 //
+#ifndef TASK3_CONFIG_H
+#define TASK3_CONFIG_H
 #include <string>
 #include <list>
 #include <fstream>
 #include <iostream>
-#ifndef TASK3_CONFIG_H
-#define TASK3_CONFIG_H
 struct Description;
 typedef std::list<std::string> ArgList;
 typedef std::string String;
