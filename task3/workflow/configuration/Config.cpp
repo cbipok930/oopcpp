@@ -28,6 +28,13 @@ void parseArgs(ArgList &args,std::string::iterator *itp){
         word.clear();
     }
 }
+bool is_number(std::string* pstr){
+    for(char & it : *pstr) {
+        if (it > '9' || it < '0')
+            return false;
+    }
+    return true;
+}
 //Заполняет поля класса Config в соответствии с данными в файле
 void Config::prepareConfigData(const std::string& config_name) {
     this->id_order.clear();
@@ -36,16 +43,15 @@ void Config::prepareConfigData(const std::string& config_name) {
     string word;
     ifstream config(config_name);
     if (!config.is_open())
-        throw std::runtime_error("Couldn't open th file \"" + config_name + "\"\n");
+        throw runtime_error("Couldn't open th file \"" + config_name + "\"\n");
     getline(config, word);
     if( !(word == "desc")){
-        throw std::runtime_error(config_name +'\n'+"Wrong file format: \"desc\" expected\n");
+        throw runtime_error(config_name +'\n'+"Wrong file format: \"desc\" expected\n");
     }
     word.clear();
     string line;
     size_t line_num = 2;
-    /*read
-     blocks*/
+    /*read decls*/
     while(true){
         Description dc;
         getline(config, line);
@@ -54,67 +60,69 @@ void Config::prepareConfigData(const std::string& config_name) {
             break;
         }
         else if(line.empty())
-            throw std::runtime_error(config_name +'\n'+ "Wrong file format: \"csed\" expected");
+            throw runtime_error(config_name +'\n'+ "Wrong file format: \"csed\" expected");
         string::iterator it = line.begin();
-        for(int i =0; i < 3; i++){
-            for(; it != line.end() && *it != 32;it++) {
-                if ((*it > '9' || *it < '0') && i == 0)
-                    throw std::runtime_error(config_name +'\n'+"ID should be a positive number\nline(" + to_string(line_num) + ")\n");
-                else if(i == 1 && *it != '=')
-                    throw std::runtime_error(config_name +'\n'+"Wrong syntax: \" = \" expected\nline(" + to_string(line_num) + ")\n");
-                word.push_back(*it);
-            }
-            if(i < 2 && it == line.end())
-                throw std::runtime_error(config_name +'\n'+"Unpredicted end of the line\nline(" + to_string(line_num)+ ")\n");
-            if(i == 0)
-                dc.id = stoi(word);
-            else if(i == 2){
-                dc.block = word;
-            }
-            if(*it != 0)
-                it++;
-            word.clear();
+        stringstream ss(line);
+        vector<string> words_line;
+        while (getline(ss, word, ' ')){
+            words_line.push_back(word);
         }
-        if (dc.block.empty())
-            throw std::runtime_error(config_name +'\n'+"Block name expected\nline(" + to_string(line_num) + ")\n");
-        parseArgs(dc.args, &it);
+        if (words_line.size() < 3)
+            throw runtime_error
+            (config_name +'\n'+"Unpredicted end of the line\nline(" + to_string(line_num)+ ")\n");
+        for(int i = 0; i < words_line.size(); i++){
+            if (i == 0) {
+                if (is_number(&words_line[i]))
+                    dc.id = stoi(words_line[i]);
+                else
+                    throw runtime_error(
+                            config_name + '\n' + "ID should be a positive number\nline(" + to_string(line_num) + ")\n");
+            }else
+            if (i == 1){
+                if (words_line[i] != "=")
+                    throw std::runtime_error
+                    (config_name +'\n'+"Wrong syntax: \" = \" expected\nline(" + to_string(line_num) + ")\n");
+            } else
+            if (i == 2)
+                dc.block = words_line[i];
+            else
+                dc.args.push_back(words_line[i]);
+
+        }
         this->descriptions.push_back(dc);
         line_num++;
     }
-    /*read
-     seq*/
+    /*read seq*/
     getline(config, line);
     if(line.empty())
         throw std::runtime_error(config_name +'\n'+"Wrong file format: sequence expected\nline(" + to_string(line_num) +")\n");
     list<size_t> sequenceIds;
     bool is_id = true;
-    for(string::iterator it = line.begin(); it != line.end(); it++){
-        if(is_id){
-            string number;
-            for(; *it != ' ' && it !=line.end(); it++) {
-                if (*it > '9' || *it < '0')
-                    throw std::runtime_error(
-                            config_name + '\n' + "ID should be a positive number\nline(" + to_string(line_num) + ")\n");
-                number.push_back(*it);
-            }
-            sequenceIds.push_back(stoi(number));
-            is_id = false;
-            if(*it == 0)
-                break;
+    stringstream ss(line);
+    vector<string> words_line;
+    word.clear();
+    while (getline(ss, word, ' '))
+        words_line.push_back(word);
+    for(int i =0; i < words_line.size(); i++){
+        if(i % 2 == 0){
+            if (is_number(&words_line[i]))
+                sequenceIds.push_back(stoi(words_line[i]));
+            else
+                throw runtime_error(
+                        config_name + '\n' + "ID should be a positive number\nline(" + to_string(line_num) + ")\n");
         }
         else{
-            word.clear();
-            for(; *it!= ' ' && it != line.end(); it++){
-                word.push_back(*it);
+            if(words_line[i] != "->")
+                throw runtime_error
+                (config_name +'\n'+"Wrong syntax: \" -> \" expected\nline(" + to_string(line_num) + ")\n");
+            else{
+                if (words_line.size() == i + 1)
+                    throw runtime_error
+                    (config_name +'\n'+"Wrong syntax: number at the end expected\nline(" + to_string(line_num) + ")\n");
+                else
+                    continue;
             }
-            if(word != "->")
-                throw std::runtime_error(config_name +'\n'+"Wrong syntax: \" -> \" expected\nline(" + to_string(line_num) + ")\n");
-            is_id = true;
-            if(*it == 0)
-                throw std::runtime_error(config_name +'\n'+"Wrong syntax: number at the end expected\nline(" + to_string(line_num) + ")\n");
         }
     }
-    if(is_id)
-        throw std::runtime_error(config_name +'\n'+"Wrong syntax: number at the end expected\nline(" + to_string(line_num) + ")\n");
     this->id_order = sequenceIds;
 }

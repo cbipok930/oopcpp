@@ -3,10 +3,13 @@
 //
 #ifndef TASK3_CONFIG_H
 #define TASK3_CONFIG_H
+#pragma once
 #include <string>
+#include <vector>
 #include <list>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 struct Description;
 typedef std::list<std::string> ArgList;
 typedef std::string String;
