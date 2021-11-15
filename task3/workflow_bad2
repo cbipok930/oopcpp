@@ -1,0 +1,7 @@
+desc
+17 = readfile ..//workflow_bad2
+3 = writefile ..//workflow_bad3
+4 = sort
+798 = replace sort not_sort_at_all
+csed
+17 -> 4 -> 897 -> 3
