@@ -1,0 +1,7 @@
+desc
+1 = sort
+10 = readfile ..\\main.cpp
+11 = dump ..\\ main.txt
+16 = writefile nevermind.txt
+csed
+11 -> 10 -> 16 -> 1

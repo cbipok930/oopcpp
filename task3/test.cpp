@@ -3,7 +3,7 @@
 #include "addons/block_append.h"
 int main() {
     auto cfg = new Config;
-    cfg->prepareConfigData("..\\mycfg");
+    cfg->prepareConfigData("..\\workflow_good");
     CreatorsList crts;
     //быстро заполняем список необходимыми creator'ами
     for(int i = 0; i <= 6; i++){
@@ -35,10 +35,8 @@ int main() {
         }
         crts.push_back(c);
     }
-    auto wk = Factory(&crts, cfg);
-    std::string  ea = wk.produce();
-//    auto blk = ct.createBlock(&arguments);
-//    std::string ea = blk->text;
-    std::cout <<ea;
+    auto wf = Factory(&crts, cfg);
+    std::string text = wf.produce();
+    std::cout << text;
     return 0;
 }
