@@ -10,31 +10,20 @@
 #include <string>
 #include <windows.h>
 #include <vector>
-#define DOLLAR 36
-#define SHARP 35
-struct point{
-    int  x;
-    int  y;
-};
-typedef point resolution;
-struct pixel{
-    point cord;
-    int mark;
-};
-typedef std::vector<pixel> pixels;
-void SetWindow(SHORT width, SHORT height);
-
+#define ID_GLOB_BOOL 0
+#define ID_BOOL_KP 0
+#define ID_BOOL_MM 1
+#define ID_GLOB_KPMSG 1
+#define ID_GLOB_MMMSG 2
+typedef std::vector<bool> boolDatFromModel;
+typedef std::vector<LONG_PTR> DatFromModel;
 class View {
 public:
     View(HWND hWnd, MSG msg, SHORT width, SHORT height) : _width_(width), _height_(height){
         _hWnd_ = hWnd;
         _msg_ = msg;
-        _display_ = new wchar_t[_width_ * _height_];
-        pDisplay = &_display_[0];
     }
-    void setDisplay(pixels *pNewDat);
-    const wchar_t* pDisplay;
-    resolution getResolution();
+    bool get(DatFromModel* dat);
 private:
     HWND _hWnd_;
     MSG _msg_;

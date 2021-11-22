@@ -42,17 +42,24 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
     auto vec_dat = (std::vector<LONG_PTR>*)dat;
     View* view = (View*)((*vec_dat)[0]);
     Controller* controller = (Controller*)((*vec_dat)[2]);
+    if (!controller->capture(hWnd, message, wParam, lParam))
+        PostQuitMessage(0);
     switch(message)
     {
         case WM_KEYDOWN:
-            controller->capture(hWnd, message, wParam, lParam);
+            if (!controller->capture(hWnd, message, wParam, lParam))
+                PostQuitMessage(0);
             return 0;
         case WM_MOUSEMOVE:
-            controller->capture(hWnd, message, wParam, lParam);
+            if (!controller->capture(hWnd, message, wParam, lParam))
+                PostQuitMessage(0);
             return 0;
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
+        case WM_USER:
+            if (!controller->capture(hWnd, message, wParam, lParam))
+                PostQuitMessage(0);
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
     }

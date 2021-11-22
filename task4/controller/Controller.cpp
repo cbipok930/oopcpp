@@ -8,13 +8,10 @@ bool Controller::send(fromController dat) {
 }
 bool Controller::capture(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     int sig = SIG_NOTHING;
-    bool mouseMove = (message == WM_MOUSEMOVE);
-    POINT p;
-    GetCursorPos(&p);
     if (GetKeyState(VK_ESCAPE) & 0x8000){
         sig = SIG_ESC;
     } else
-    if (GetKeyState(VK_SELECT) & 0x8000){
+    if (GetKeyState(VK_SPACE) & 0x8000){
         sig = SIG_SET;
     } else
     if (GetKeyState(VK_UP) & 0x8000){
@@ -28,7 +25,10 @@ bool Controller::capture(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     } else
     if (GetKeyState(VK_DOWN) & 0x8000){
         sig = SIG_DOWN;
-    } else
+    }
+    bool mouseMove = (message == WM_MOUSEMOVE);
+    POINT p;
+    GetCursorPos(&p);
     return (this->send({sig, mouseMove, p}));
 }
 

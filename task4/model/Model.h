@@ -7,6 +7,8 @@
 #pragma once
 #include <cstdint>
 #include <map>
+#include <vector>
+#include <set>
 #include "../view/View.h"
 #define SIG_UP 0
 #define SIG_RIGHT 1
@@ -17,15 +19,23 @@
 #define SIG_NOTHING -1
 #define SYSRES_H 1080
 #define SYSRES_W 1920
-struct checkPos{
+struct checkerPos{
     char let;
     char dig;
+    bool operator < (const checkerPos& pos) const{
+        if ( let < pos.let )
+            return true;
+        if ( let == pos.let &&  dig < pos.dig )
+            return true;
+        return false;
+    }
 };
 struct checkerObject{
     bool user;
-    checkPos pos;
+    checkerPos pos;
 };
-typedef std::map<>
+typedef std::map<checkerPos, checkerObject* > Board;
+typedef std::map<checkerPos, checkerObject> checkersSet;
 struct fromController{
     int sig;
     bool mouseMove;
@@ -33,28 +43,23 @@ struct fromController{
 };
 class Model {
 public:
-    Model(View* pv) : _finishProc(false),
-                      _updateCords(false),
-                      _updateKey(false),
-                      _keyPressed(SIG_NOTHING),
-                      _mouseCords({0,0})
-                      {
-
-    }
+    Model(View* pv);
     bool receive(fromController dat);
 
 private:
+    View* _pView;
+    Board _checkBoard;
+    checkersSet _foeCheckers;
+    checkersSet _userCheckers;
     bool _finishProc;
+    bool _menu;
     bool _updateCords;
-    bool _updateKey;
-    int _keyPressed;
+    bool _keyPressed;
+    int _keyType;
     POINT _mouseCords;
 
     bool changeState();
-//    View* _pView_;
-//    pixel _one_;
-//    pixel _cursor_;
-//    void update(pixels *pNewDat);
+    bool send(DatFromModel* dat);
 };
 
 

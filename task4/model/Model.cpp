@@ -3,67 +3,96 @@
 //
 
 #include "Model.h"
-/*Model::Model(View *pv) {
-    _pView_ = pv;
-    _one_.cord.y = 2;
-    _one_.cord.x = 2;
-    _one_.mark = SHARP;
-    _cursor_ = {{0, 0}, DOLLAR};
-}*/
-
-bool Model::receive(fromController dat) {
-/*   if(dat == SIG_UP)
-       _one_.cord.y = ((_one_.cord.y - 1) >= 0) ? (_one_.cord.y - 1) : (_pView_->getResolution().y - 1);
-   else {
-   if(dat == SIG_DOWN)
-       _one_.cord.y = ((_one_.cord.y + 1) < _pView_->getResolution().y) ? (_one_.cord.y + 1) : (0);
-   else {
-   if(dat == SIG_LEFT)
-       _one_.cord.x = ((_one_.cord.x - 1) >= 0) ? (_one_.cord.x - 1) : (_pView_->getResolution().x - 1);
-   else {
-   if(dat == SIG_RIGHT)
-       _one_.cord.x = ((_one_.cord.x + 1) < _pView_->getResolution().x) ? (_one_.cord.x + 1) : (0);
-   else {
-   if(dat == SIG_SET)
-       _one_.mark = (_one_.mark == DOLLAR) ? (SHARP) : (DOLLAR);
+void initChecker(checkersSet& set, Board& board, checkerPos& pos, bool side){
+    auto pch = new checkerObject{side, pos};
+    set[pos] = *pch;
+    board[pos] = &set[pos];
+}
+Model::Model(View *pv) {
+    _pView = pv;
+    _finishProc = false;
+    _updateCords = false;
+    _keyPressed = false;
+    _menu = false;
+    _keyType = SIG_NOTHING;
+    _mouseCords = {0, 0};
+    for (char l = 'A'; l <= 'H'; l++) {
+        for (char d = '1'; d <= '8'; d++) {
+            checkerPos pos = {l, d};
+            if (d >= '6') {
+                if (d == '7') {
+                    std::set<char> i = {'A', 'C', 'E', 'G'};
+                    if (i.count(l) <= 0)_checkBoard[pos] = nullptr;
+                    else initChecker(_foeCheckers, _checkBoard, pos, false);
+                } else {
+                    std::set<char> i = {'B', 'D', 'F', 'H'};
+                    if (i.count(l) <= 0) _checkBoard[pos] = nullptr;
+                    else initChecker(_foeCheckers, _checkBoard, pos, false);
+                }
+            } else if (d <= '3') {
+                if (d == '2') {
+                    std::set<char> i = {'B', 'D', 'F', 'H'};
+                    if (i.count(l) <= 0)_checkBoard[pos] = nullptr;
+                    else initChecker(_userCheckers, _checkBoard, pos, true);
+                } else {
+                    std::set<char> i = {'A', 'C', 'E', 'G'};
+                    if (i.count(l) <= 0) _checkBoard[pos] = nullptr;
+                    else initChecker(_userCheckers, _checkBoard, pos, true);
                 }
             }
+            else _checkBoard[pos] = nullptr;
         }
     }
-   if (dat != NOTHING)
-        this->update(_one_);
-
-    auto vec = new pixels;
-    _cursor_.cord.x = dat.mouse.x * _pView_->getResolution().x/ SYSRES_W;
-    _cursor_.cord.y = dat.mouse.y * _pView_->getResolution().y/ SYSRES_H;
-    if(dat.sig == SIG_SET)
-        _cursor_.mark = (_one_.mark == DOLLAR) ? (SHARP) : (DOLLAR);
-    vec->push_back(_cursor_);
-    _pView_->setDisplay(vec);
-    */
-
+}
+bool Model::receive(fromController dat) {
 _updateCords = dat.mouseMove;
+_mouseCords = dat.mouse;
 switch (dat.sig) {
     case SIG_ESC:
         _finishProc = true;
         return false;
     case SIG_SET:
-        _updateKey = true;
-        _keyPressed = SIG_SET;
+        _keyPressed = true;
+        _keyType = SIG_SET;
         return (this->changeState());
-    case SIG_
-    default: return true;
-}
-}
-bool Model::changeState() {
-
-    switch (dat.sig) {
-        case SIG_ESC:
-            _finishProc = true;
-            return false;
-        case SIG_
-
-        default: return true;
+    default:
+        return (this->changeState());
     }
 }
+bool Model::changeState() {
+    boolDatFromModel boolDat;
+    boolDat.resize(sizeof(bool) * 10);
+
+    std::string keyString;
+    switch (_keyType) {
+        case SIG_SET:
+            keyString = "Enter pressed\n";
+            break;
+        default:
+            break;
+    }
+
+    boolDat[ID_BOOL_KP] = _keyPressed;
+    _keyPressed = false;
+
+    boolDat[ID_BOOL_MM] = _updateCords;
+    _updateCords = false;
+    ////
+
+    LONG_PTR bdMsg = (LONG_PTR)(&boolDat);
+    LONG_PTR  keyMsg = (LONG_PTR)(&keyString);
+    LONG_PTR mouseMsg = (LONG_PTR)(&_mouseCords);
+    DatFromModel dat;
+    dat.resize(sizeof (LONG_PTR) * 10);
+    dat[ID_GLOB_BOOL] = bdMsg;
+    dat[ID_GLOB_KPMSG] =  keyMsg;
+    dat[ID_GLOB_MMMSG] = mouseMsg;
+    return (this->send(&dat));
+}
+
+bool Model::send(DatFromModel *dat) {
+    return (_pView->get(dat));
+}
+
+
 
