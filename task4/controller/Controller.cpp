@@ -3,62 +3,32 @@
 //
 
 #include "Controller.h"
-int64_t Controller::capture(POINT mouseCords) {
-    UINT message;
-
-    switch (message)
-    {
-        case WM_KEYDOWN: {
-            if (GetKeyState(VK_ESCAPE))
-                return -1;
-            if (GetKeyState(VK_UP))
-                send({SIG_UP, mouseCords});
-            if (GetKeyState(VK_RIGHT))
-                send({SIG_RIGHT, mouseCords});
-            if (GetKeyState(VK_LEFT))
-                send({SIG_LEFT, mouseCords});
-            if (GetKeyState(VK_DOWN))
-                send({SIG_DOWN, mouseCords});
-            if (GetKeyState(VK_SPACE))
-                send({SIG_SET, mouseCords});
-            else
-                send({NOTHING, mouseCords});
-        }
-            break;
-
-
-    }
-    return 0;
-}
-void Controller::send(fromController dat) {
+bool Controller::send(fromController dat) {
     _pModel_->receive(dat);
 }
-
-bool Controller::start(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    //test
-    if (GetKeyState(VK_UP) & 0x8000)
-        std::cout << "UP\n";
-    if (GetKeyState(VK_RIGHT) & 0x8000)
-        std::cout << "RIGHT\n";
+bool Controller::capture(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+    int sig = SIG_NOTHING;
+    bool mouseMove = (message == WM_MOUSEMOVE);
     POINT p;
     GetCursorPos(&p);
-    switch (message)
-    {
-        case WM_MOUSEMOVE:
-            std::cout << p.x << "  " << p.y <<'\n';
-            break;
-        default:
-            break;
-    }
-    return true;
-    //enstest
-    /*int i = 0;
-    POINT p;
-    GetCursorPos(&p);
-    uint64_t key = 0;
-    if(this->capture(p) < 0)
-        return false;
-    else
-        return true;
-        */
+    if (GetKeyState(VK_ESCAPE) & 0x8000){
+        sig = SIG_ESC;
+    } else
+    if (GetKeyState(VK_SELECT) & 0x8000){
+        sig = SIG_SET;
+    } else
+    if (GetKeyState(VK_UP) & 0x8000){
+        sig = SIG_UP;
+    } else
+    if (GetKeyState(VK_RIGHT) & 0x8000){
+        sig = SIG_RIGHT;
+    } else
+    if (GetKeyState(VK_LEFT) & 0x8000){
+        sig = SIG_LEFT;
+    } else
+    if (GetKeyState(VK_DOWN) & 0x8000){
+        sig = SIG_DOWN;
+    } else
+    return (this->send({sig, mouseMove, p}));
 }
+

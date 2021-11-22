@@ -45,10 +45,10 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
     switch(message)
     {
         case WM_KEYDOWN:
-            controller->start(hWnd, message, wParam, lParam);
+            controller->capture(hWnd, message, wParam, lParam);
             return 0;
         case WM_MOUSEMOVE:
-            controller->start(hWnd, message, wParam, lParam);
+            controller->capture(hWnd, message, wParam, lParam);
             return 0;
         case WM_DESTROY:
             PostQuitMessage(0);
@@ -123,7 +123,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, PSTR, INT iCmdShow) {
     HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
     SetConsoleActiveScreenBuffer(hConsole);
     DWORD dwBytesWritten = 0;
-    while(c->start()) {
+    while(c->capture()) {
         WriteConsoleOutputCharacter(hConsole, reinterpret_cast<LPCSTR>(v->pDisplay), WIDTH * HEIGHT * 2, {0, 0 }, &dwBytesWritten);
     }
     return 0;*/
