@@ -37,14 +37,37 @@ VOID OnPaint(HDC hdc)
     }
 } // WndProc*/
 LRESULT CALLBACK MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
-    LONG_PTR dat = GetWindowLongA(hWnd, GWLP_USERDATA);
-    if (!dat) { return DefWindowProc(hWnd, message, wParam, lParam);}
-    auto vec_dat = (std::vector<LONG_PTR>*)dat;
-    View* view = (View*)((*vec_dat)[0]);
-    Controller* controller = (Controller*)((*vec_dat)[2]);
-    if (!controller->capture(hWnd, message, wParam, lParam))
-        PostQuitMessage(0);
-    switch(message)
+//    LONG_PTR dat = GetWindowLongA(hWnd, GWLP_USERDATA);
+//    if (!dat) { return DefWindowProc(hWnd, message, wParam, lParam);}
+//
+//    auto vec_dat = (std::vector<LONG_PTR>*)dat;
+//    View* view = (View*)((*vec_dat)[0]);
+//    Controller* controller = (Controller*)((*vec_dat)[2]);
+//    if (!controller->capture(hWnd, message, wParam, lParam))
+//        PostQuitMessage(0);
+    if (message == WM_CREATE){
+        return DefWindowProc(hWnd, message, wParam, lParam);
+    }
+    else if (message == WM_NCCREATE)
+        return DefWindowProc(hWnd, message, wParam, lParam);
+    else
+    {
+        switch(message)
+        {
+            case WM_DESTROY:
+                PostQuitMessage(0);
+                return 0;
+            default:
+                LONG_PTR dat = GetWindowLongA(hWnd, GWLP_USERDATA);
+                auto vec_dat = (std::vector<LONG_PTR>*)dat;
+                View* view = (View*)((*vec_dat)[0]);
+                Controller* controller = (Controller*)((*vec_dat)[2]);
+                if (!controller->capture(hWnd, message, wParam, lParam))
+                    PostQuitMessage(0);
+                return 0;
+        }
+    }
+   /* switch(message)
     {
         case WM_KEYDOWN:
             if (!controller->capture(hWnd, message, wParam, lParam))
@@ -62,33 +85,32 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
                 PostQuitMessage(0);
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
-    }
+    }*/
 }
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, PSTR, INT iCmdShow) {
     using namespace Gdiplus;
     HWND hwnd;
     MSG msg;
-    WNDCLASS wndClass;
     GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;
     // Initialize GDI+.
     GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+    WNDCLASS wnd;
+    wnd.cbClsExtra = 0;
+    wnd.cbWndExtra = 0;
+    wnd.hCursor = LoadCursor(0, IDC_ARROW);
+    wnd.hIcon = LoadIcon(0, IDI_WINLOGO);
+    wnd.lpszMenuName = 0;
+    wnd.style = 0;
+    wnd.hbrBackground = 0;
+    wnd.lpfnWndProc = MainWndProc;
+    wnd.hInstance = hInstance;
+    wnd.lpszClassName = reinterpret_cast<LPCSTR>(L"MainWnd");
 
-    wndClass.style          = CS_HREDRAW | CS_VREDRAW;
-    wndClass.lpfnWndProc    = MainWndProc;
-    wndClass.cbClsExtra     = 0;
-    wndClass.cbWndExtra     = 0;
-    wndClass.hInstance      = hInstance;
-    wndClass.hIcon          = LoadIcon(NULL, IDI_APPLICATION);
-    wndClass.hCursor        = LoadCursor(NULL, IDC_ARROW);
-    wndClass.hbrBackground  = (HBRUSH)GetStockObject(WHITE_BRUSH);
-    wndClass.lpszMenuName   = NULL;
-    wndClass.lpszClassName  = TEXT("MainWnd");
-
-    RegisterClass(&wndClass);
+    RegisterClass(&wnd);
 
 
-    hwnd = CreateWindow(
+   /* hwnd = CreateWindow(
             TEXT("MainWnd"),   // window class name
             TEXT("Getting Started"),  // window caption
             WS_OVERLAPPEDWINDOW,      // window style
@@ -99,7 +121,22 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, PSTR, INT iCmdShow) {
             NULL,                     // parent window handle
             NULL,                     // window menu handle
             hInstance,                // program instance handle
-            NULL);                    // creation parameters
+            NULL);                    // creation parameters*/
+    hwnd = CreateWindowExA(
+            WS_OVERLAPPEDWINDOW,           // Optional window styles.
+            reinterpret_cast<LPCSTR>(L"MainWnd"),         // Window class
+            reinterpret_cast<LPCSTR>(L"Getting Started"), // Window text
+            WS_OVERLAPPEDWINDOW,           // Window style
+
+            // Size and position
+            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+
+            NULL,       // Parent window
+            NULL,       // Menu
+            hInstance,  // Instance handle
+            NULL      // Additional application data
+            );
+    DispatchMessage(&msg);
     auto view = new View(hwnd, msg, WIDTH, HEIGHT);
     auto model = new Model(view);
     auto controller = new Controller(model);

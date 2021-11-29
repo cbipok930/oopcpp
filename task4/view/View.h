@@ -15,15 +15,22 @@
 #define ID_BOOL_MM 1
 #define ID_GLOB_KPMSG 1
 #define ID_GLOB_MMMSG 2
-typedef std::vector<bool> boolDatFromModel;
-typedef std::vector<LONG_PTR> DatFromModel;
+class Model;
+class DataModel{
+public:
+    DataModel() = default;
+    bool updateCords;
+    bool keyPressed;
+    std::string msg;
+    POINT mouseCords;
+};
 class View {
 public:
     View(HWND hWnd, MSG msg, SHORT width, SHORT height) : _width_(width), _height_(height){
         _hWnd_ = hWnd;
         _msg_ = msg;
     }
-    bool get(DatFromModel* dat);
+    bool get(DataModel* dat);
 private:
     HWND _hWnd_;
     MSG _msg_;

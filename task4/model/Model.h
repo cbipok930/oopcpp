@@ -59,7 +59,7 @@ private:
     POINT _mouseCords;
 
     bool changeState();
-    bool send(DatFromModel* dat);
+    bool send(DataModel* dat);
 };
 
 

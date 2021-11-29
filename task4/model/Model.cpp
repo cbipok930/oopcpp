@@ -60,8 +60,7 @@ switch (dat.sig) {
     }
 }
 bool Model::changeState() {
-    boolDatFromModel boolDat;
-    boolDat.resize(sizeof(bool) * 10);
+    auto dm = new DataModel;
 
     std::string keyString;
     switch (_keyType) {
@@ -71,26 +70,18 @@ bool Model::changeState() {
         default:
             break;
     }
+    dm->msg = keyString;
+    dm->keyPressed = _keyPressed;
+    dm->updateCords = _updateCords;
+    dm->mouseCords = _mouseCords;
 
-    boolDat[ID_BOOL_KP] = _keyPressed;
     _keyPressed = false;
-
-    boolDat[ID_BOOL_MM] = _updateCords;
     _updateCords = false;
     ////
-
-    LONG_PTR bdMsg = (LONG_PTR)(&boolDat);
-    LONG_PTR  keyMsg = (LONG_PTR)(&keyString);
-    LONG_PTR mouseMsg = (LONG_PTR)(&_mouseCords);
-    DatFromModel dat;
-    dat.resize(sizeof (LONG_PTR) * 10);
-    dat[ID_GLOB_BOOL] = bdMsg;
-    dat[ID_GLOB_KPMSG] =  keyMsg;
-    dat[ID_GLOB_MMMSG] = mouseMsg;
-    return (this->send(&dat));
+    return (this->send(dm));
 }
 
-bool Model::send(DatFromModel *dat) {
+bool Model::send(DataModel *dat) {
     return (_pView->get(dat));
 }
 

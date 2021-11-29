@@ -3,15 +3,12 @@
 //
 
 #include "View.h"
-
-bool View::get(DatFromModel *dat) {
-    boolDatFromModel* pBoolDat = (boolDatFromModel*)(*dat)[ID_GLOB_BOOL];
-    if ((bool)(*pBoolDat)[ID_BOOL_KP]){
-        std::cout << *(std::string*)(*dat)[ID_GLOB_KPMSG] << std::endl;
+bool View::get(DataModel *dat) {
+    if(dat->keyPressed){
+        std::cout << dat->msg << std::endl;
     }
-    if ((bool)(*pBoolDat)[ID_BOOL_MM]){
-        std::cout << (*((POINT*)(*dat)[ID_GLOB_MMMSG])).y <<" "<<
-        (*((POINT*)(*dat)[ID_GLOB_MMMSG])).x<< std::endl;
+    if(dat->updateCords){
+        std::cout << dat->mouseCords.x << " " << dat->mouseCords.y << std::endl;
     }
     return true;
 }

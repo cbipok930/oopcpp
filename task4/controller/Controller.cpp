@@ -4,7 +4,7 @@
 
 #include "Controller.h"
 bool Controller::send(fromController dat) {
-    _pModel_->receive(dat);
+    return _pModel_->receive(dat);
 }
 bool Controller::capture(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     int sig = SIG_NOTHING;
