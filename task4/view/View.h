@@ -8,13 +8,16 @@
 #include <iostream>
 #include <conio.h>
 #include <string>
-#include <windows.h>
 #include <vector>
-#define ID_GLOB_BOOL 0
-#define ID_BOOL_KP 0
-#define ID_BOOL_MM 1
-#define ID_GLOB_KPMSG 1
-#define ID_GLOB_MMMSG 2
+#include <windows.h>
+#include <gdiplus.h>
+#define FIELD_OX 200
+#define FIELD_OY 100
+#define FIELD_TOPLEFTX (16 + FIELD_OX + 3)
+#define FIELD_TOPLEFTY (16 + FIELD_OY + 3)
+#define FIELD_BOTTOMRIGHTX (349 + FIELD_OX)
+#define FIELD_BOTTOMRIGHTY (349 + FIELD_OY)
+
 class Model;
 class DataModel{
 public:
@@ -23,20 +26,24 @@ public:
     bool keyPressed;
     std::string msg;
     POINT mouseCords;
+    bool _menu;
+    std::vector<int> userCheckersPos;
+    std::vector<int> foeCheckersPos;
 };
 class View {
 public:
-    View(HWND hWnd, MSG msg, SHORT width, SHORT height) : _width_(width), _height_(height){
-        _hWnd_ = hWnd;
-        _msg_ = msg;
-    }
+    View(HWND *hWnd, HDC *hdc, MSG *msg, const Gdiplus::Bitmap &imgB, const Gdiplus::Bitmap &imgC);
     bool get(DataModel* dat);
+    void show();
 private:
-    HWND _hWnd_;
-    MSG _msg_;
-    SHORT _width_;
-    SHORT _height_;
-    wchar_t* _display_;
+    Gdiplus::Image* _boardImgP;
+    Gdiplus::Image* _checkerImgP;
+    Gdiplus::ColorMatrix _colorMatrixBlack;
+    HWND* _hWndP;
+    HDC* _hdcP;
+    MSG* _msgP;
+    std::vector<int> _whiteCheckersPos;
+    std::vector<int> _blackCheckersPos;
 };
 
 

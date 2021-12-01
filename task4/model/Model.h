@@ -57,9 +57,10 @@ private:
     bool _keyPressed;
     int _keyType;
     POINT _mouseCords;
+    std::string _msg;
 
     bool changeState();
-    bool send(DataModel* dat);
+    bool send();
 };
 
 

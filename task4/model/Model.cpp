@@ -16,6 +16,7 @@ Model::Model(View *pv) {
     _menu = false;
     _keyType = SIG_NOTHING;
     _mouseCords = {0, 0};
+    _msg = "";
     for (char l = 'A'; l <= 'H'; l++) {
         for (char d = '1'; d <= '8'; d++) {
             checkerPos pos = {l, d};
@@ -60,29 +61,44 @@ switch (dat.sig) {
     }
 }
 bool Model::changeState() {
-    auto dm = new DataModel;
-
     std::string keyString;
     switch (_keyType) {
         case SIG_SET:
-            keyString = "Enter pressed\n";
+            _msg = "Enter pressed\n";
             break;
         default:
             break;
     }
-    dm->msg = keyString;
+    // send to View
+    bool ret = this->send();
+    // set defaults
+    _msg = "";
+    _keyPressed = false;
+    _updateCords = false;
+    return ret;
+}
+
+bool Model::send() {
+    auto dm = new DataModel;
+    dm->msg = _msg;
     dm->keyPressed = _keyPressed;
     dm->updateCords = _updateCords;
     dm->mouseCords = _mouseCords;
-
-    _keyPressed = false;
-    _updateCords = false;
-    ////
-    return (this->send(dm));
-}
-
-bool Model::send(DataModel *dat) {
-    return (_pView->get(dat));
+    std::vector<int> foePos;
+    std::vector<int> userPos;
+    for (auto it = _foeCheckers.begin(); it != _foeCheckers.end(); it++){
+        int row = abs(int(it->first.dig) - int('8'));
+        int col = abs(int(it->first.let) - int('A'));
+        foePos.push_back(row * 8 + col);
+    }
+    for (auto it = _userCheckers.begin(); it != _userCheckers.end(); it++){
+        int row = abs(int(it->first.dig) - int('8'));
+        int col = abs(int(it->first.let) - int('A'));
+        userPos.push_back(row * 8 + col);
+    }
+    dm->foeCheckersPos = foePos;
+    dm->userCheckersPos = userPos;
+    return (_pView->get(dm));
 }
 
 
