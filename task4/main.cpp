@@ -108,8 +108,8 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR commandLine, INT iCmdSh
     }
     MSG msg;
     HDC hDc = GetDC(hwnd);
-    auto board = new Gdiplus::Bitmap(L"shashechnaya-doska.jpg");
-    auto checker = new Gdiplus::Bitmap(L"draughts64.png");
+    auto board = new Gdiplus::Bitmap(L"..\\dat\\shashechnaya-doska.jpg");
+    auto checker = new Gdiplus::Bitmap(L"..\\dat\\draughts64.png");
     auto view = new View(&hwnd, &hDc, &msg, *board, *checker);
     auto model = new Model(view);
     auto controller = new Controller(model);
