@@ -26,9 +26,13 @@ bool Controller::capture(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     if (GetKeyState(VK_DOWN) & 0x8000){
         sig = SIG_DOWN;
     }
+
+    if (message == WM_LBUTTONDOWN)
+        sig = SIG_CLICK;
     bool mouseMove = (message == WM_MOUSEMOVE);
     POINT p;
     GetCursorPos(&p);
+    ScreenToClient(hWnd, &p);
     return (this->send({sig, mouseMove, p}));
 }
 

@@ -13,8 +13,8 @@
 #include <gdiplus.h>
 #define FIELD_OX 200
 #define FIELD_OY 100
-#define FIELD_TOPLEFTX (16 + FIELD_OX + 3)
-#define FIELD_TOPLEFTY (16 + FIELD_OY + 3)
+#define FIELD_TOPLEFTX (16 + FIELD_OX)
+#define FIELD_TOPLEFTY (16 + FIELD_OY)
 #define FIELD_BOTTOMRIGHTX (349 + FIELD_OX)
 #define FIELD_BOTTOMRIGHTY (349 + FIELD_OY)
 
@@ -29,10 +29,12 @@ public:
     bool _menu;
     std::vector<int> userCheckersPos;
     std::vector<int> foeCheckersPos;
+    int pointArea;
+    int selArea;
 };
 class View {
 public:
-    View(HWND *hWnd, HDC *hdc, MSG *msg, const Gdiplus::Bitmap &imgB, const Gdiplus::Bitmap &imgC);
+    View(HWND *hWnd, HDC* hdc, MSG *msg, const Gdiplus::Bitmap &imgB, const Gdiplus::Bitmap &imgC);
     bool get(DataModel* dat);
     void show();
 private:
@@ -44,6 +46,8 @@ private:
     MSG* _msgP;
     std::vector<int> _whiteCheckersPos;
     std::vector<int> _blackCheckersPos;
+    int _pointArea;
+    int _selArea;
 };
 
 

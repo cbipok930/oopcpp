@@ -3,7 +3,7 @@
 //
 
 #include "View.h"
-View::View(HWND *hWnd, HDC *hdc, MSG *msg, const Gdiplus::Bitmap &imgB, const Gdiplus::Bitmap &imgC) {
+View::View(HWND *hWnd, HDC* hdc, MSG *msg, const Gdiplus::Bitmap &imgB, const Gdiplus::Bitmap &imgC) {
     using namespace Gdiplus;
     _hWndP = hWnd;
     _hdcP = hdc;
@@ -17,10 +17,11 @@ View::View(HWND *hWnd, HDC *hdc, MSG *msg, const Gdiplus::Bitmap &imgB, const Gd
             0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
             0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 }
-
 bool View::get(DataModel *dat) {
     _whiteCheckersPos = dat->userCheckersPos;
     _blackCheckersPos = dat->foeCheckersPos;
+    _pointArea = dat->pointArea;
+    _selArea = dat->selArea;
     if(dat->keyPressed){
         std::cout << dat->msg << std::endl;
     }
@@ -32,6 +33,8 @@ bool View::get(DataModel *dat) {
 
 void View::show() {
     using namespace Gdiplus;
+    RECT rect;
+    GetWindowRect(*_hWndP, &rect);
     auto imAtt = new ImageAttributes;
     imAtt->SetColorKey(
             Color(254, 254, 254),
@@ -50,20 +53,38 @@ void View::show() {
     auto graphics = new Graphics(*_hdcP);
     g->DrawImage(_boardImgP, FIELD_OX, FIELD_OY);
     for (auto it = _whiteCheckersPos.begin(); it != _whiteCheckersPos.end(); it++){
-        int oY = FIELD_TOPLEFTY + ((*it) / 8) * 41.6;
-        int oX = FIELD_TOPLEFTX + ((*it) % 8) * 41.6;
+        int oY = FIELD_TOPLEFTY + 3 + ((*it) / 8) * 41.6;
+        int oX = FIELD_TOPLEFTX + 3 + ((*it) % 8) * 41.6;
         g->DrawImage(_checkerImgP,
                      Rect(oX, oY, _checkerImgP->GetWidth(), _checkerImgP->GetHeight()),
                      0, 0, _checkerImgP->GetWidth(), _checkerImgP->GetHeight(),
                      Gdiplus::UnitPixel, imAtt);
     }
     for (auto it = _blackCheckersPos.begin(); it != _blackCheckersPos.end(); it++){
-        int oY = FIELD_TOPLEFTY + ((*it) / 8) * 41.6;
-        int oX = FIELD_TOPLEFTX + ((*it) % 8) * 41.6;
+        int oY = FIELD_TOPLEFTY + 3 + ((*it) / 8) * 41.6;
+        int oX = FIELD_TOPLEFTX + 3 + ((*it) % 8) * 41.6;
         g->DrawImage(_checkerImgP,
                      Rect(oX, oY, _checkerImgP->GetWidth(), _checkerImgP->GetHeight()),
                      0, 0, _checkerImgP->GetWidth(), _checkerImgP->GetHeight(),
                      Gdiplus::UnitPixel, imAttBlack);
+    }
+    if (_pointArea > -1){
+        auto pen = new Pen(Color(255, 255, 0, 255));
+        pen->SetWidth(3.0);
+        auto rect = new Rect((FIELD_TOPLEFTX + (_pointArea % 8) * 41.6) + 3, (FIELD_TOPLEFTY + (_pointArea / 8) * 41.6) + 3,
+                             35, 35);
+        g->DrawRectangle(pen, *rect);
+        delete pen;
+        delete rect;
+    }
+    if (_selArea > -1){
+        auto pen = new Pen(Color(200, 0, 255, 0));
+        pen->SetWidth(5.0);
+        auto rect = new Rect((FIELD_TOPLEFTX + (_selArea % 8) * 41.6), (FIELD_TOPLEFTY + (_selArea / 8) * 41.6),
+                             43, 43);
+        g->DrawEllipse(pen, *rect);
+        delete pen;
+        delete rect;
     }
     graphics->DrawImage(result, 0, 0);
     delete imAtt;
@@ -72,3 +93,4 @@ void View::show() {
     delete graphics;
     delete result;
 }
+

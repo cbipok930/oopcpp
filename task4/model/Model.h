@@ -17,6 +17,7 @@
 #define SIG_SET 4
 #define SIG_ESC 5
 #define SIG_NOTHING -1
+#define SIG_CLICK 6
 #define SYSRES_H 1080
 #define SYSRES_W 1920
 struct checkerPos{
@@ -41,6 +42,13 @@ struct fromController{
     bool mouseMove;
     POINT mouse;
 };
+struct InputSigs{
+    bool isUpdateCords;
+    bool isKeyPressed;
+    bool isClicked;
+    int keyType;
+    POINT mouseCords;
+};
 class Model {
 public:
     Model(View* pv);
@@ -51,14 +59,13 @@ private:
     Board _checkBoard;
     checkersSet _foeCheckers;
     checkersSet _userCheckers;
-    bool _finishProc;
-    bool _menu;
-    bool _updateCords;
-    bool _keyPressed;
-    int _keyType;
-    POINT _mouseCords;
+    checkerObject* _checkerSelected;
+    InputSigs _inputSigs;
+    bool _isFinishProc;
+    bool _isMenu;
+    bool _isSelected;
+    bool _isUser;
     std::string _msg;
-
     bool changeState();
     bool send();
 };
