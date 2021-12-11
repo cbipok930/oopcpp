@@ -5,14 +5,23 @@
 #include "Model.h"
 void initChecker(checkersSet& set, Board& board, checkerPos& pos, bool side){
     auto pch = new checkerObject{side, pos};
-    set[pos] = *pch;
-    std::cout << &set[pos] << std::endl;
-    board[pos] = &set[pos];
+    set.push_back(pch);
+    board[pos] = pch;
 }
-checkerPos posFromDigTab(int row, int col){
+checkerPos posFromIntsToChars(int row, int col){
     char let = char(col + int('A'));
     char dig = char(-1 * row + int('8'));
     return {let, dig};
+}
+void cordsToPosInts(const POINT p, int & row, int & col){
+    col = (p.x - FIELD_TOPLEFTX * BOARD_SCALE) *
+              double(8.0 / (FIELD_BOTTOMRIGHTX *BOARD_SCALE - FIELD_TOPLEFTX * BOARD_SCALE));
+    row = (p.y - FIELD_TOPLEFTY * BOARD_SCALE) *
+              double(8.0 / (FIELD_BOTTOMRIGHTY * BOARD_SCALE - FIELD_TOPLEFTY * BOARD_SCALE));
+}
+bool isWithinField(const POINT p){
+    return (p.x >= FIELD_TOPLEFTX*BOARD_SCALE  && p.x <= FIELD_BOTTOMRIGHTX*BOARD_SCALE
+    && p.y >= FIELD_TOPLEFTY*BOARD_SCALE && p.y <= FIELD_BOTTOMRIGHTY*BOARD_SCALE);
 }
 Model::Model(View *pv) {
     _pView = pv;
@@ -27,6 +36,8 @@ Model::Model(View *pv) {
     _isMenu = false;
     _isSelected = false;
     _isUser = true;
+    _isWhite = true;
+    _isPvP = true;
     _msg = "";
     for (char l = 'A'; l <= 'H'; l++) {
         for (char d = '1'; d <= '8'; d++) {
@@ -56,6 +67,127 @@ Model::Model(View *pv) {
         }
     }
 }
+bool Model::nextToPos(checkerPos p, checkerPos* pnext, int direction){
+    checkerPos next = *pnext;
+    switch(direction){
+        case(0):
+            next.let = (char)(p.let + 1); next.dig = (char)(p.dig + 1);break;
+        case(1):
+            next.let = (char)(p.let + 1);next.dig = (char)(p.dig - 1);break;
+        case(2):
+            next.let = (char)(p.let - 1);next.dig = (char)(p.dig - 1);break;
+        case(3):
+            next.let = (char)(p.let - 1);next.dig = (char)(p.dig + 1);break;
+        default: return false;
+    }
+    *pnext = next;
+    if (next.let < 'A' || next.let > 'H' || next.dig > '8' || next.dig < '1')
+        return false;
+    else
+        return true;
+}
+bool Model::strikeSingle(checkerPos enemy, int direction) {
+    checkerPos next = {0, 0};
+    nextToPos(enemy, &next, direction);
+    if (_checkBoard[enemy] != nullptr){
+        if (_checkBoard[enemy]->user == !_isUser
+             && _checkBoard[next] == nullptr) {
+            return true;
+        }
+    }
+    return false;
+}
+void Model::possibleMoves(checkerPos pos, std::list<std::vector<StrikePath>> & posMoves) {
+    int dirStart = 0;
+    do {
+        StrikePath move = {nullptr, {0,0}};
+        if (nextToPos(pos, &move.killerPosNew, dirStart)) {// not border
+            if (_checkBoard[move.killerPosNew] == nullptr){
+                if((dirStart == 0  || dirStart == 3) && _isWhite || (dirStart == 1 || dirStart == 2) && !_isWhite){//free
+                std::vector<StrikePath> free_vec;
+                free_vec.push_back(move);
+                posMoves.push_back(free_vec);
+            }
+        }
+            else if (_checkBoard[move.killerPosNew]->user != _isUser){//enemy
+                StrikePath moveStrike = {nullptr, {0,0}};
+                if(nextToPos(move.killerPosNew, &moveStrike.killerPosNew, dirStart)) {
+                    if (_checkBoard[moveStrike.killerPosNew] == nullptr) {
+                        moveStrike.killed = _checkBoard[move.killerPosNew];
+                        std::vector<StrikePath> strike_vec;
+                        strike_vec.push_back(moveStrike);
+                        posMoves.push_back(strike_vec);
+                    }
+                }
+            }
+        }
+        dirStart = (dirStart + 1)%4;
+    } while (dirStart != 0);
+}
+
+bool Model::playerTurn() {
+    if (isWithinField(_inputSigs.mouseCords))
+    {
+        int col, row;
+        cordsToPosInts(_inputSigs.mouseCords, row, col);
+        checkerPos newPos = posFromIntsToChars(row, col);
+        checkerObject* pCheckerClicked = _checkBoard[newPos];
+        std::cout << "Clicked at " << pCheckerClicked << std::endl;
+        if (_isSelected)//checker's move
+        {
+            std::list<std::vector<StrikePath>> moves;
+            possibleMoves(_checkerSelected->pos, moves);
+            bool walk = false;
+            for (auto & move : moves){
+                for (auto & vt : move){
+                    if (vt.killerPosNew.let == newPos.let && vt.killerPosNew.dig == newPos.dig){
+                        if (vt.killed != nullptr){
+                            _checkBoard[vt.killed->pos] = nullptr;
+                            if (!vt.killed->user){
+                                auto it = std::find(_foeCheckers.begin(), _foeCheckers.end(), vt.killed);
+                                _foeCheckers.erase(it);
+                                delete (*it);
+                            }
+                            else{
+                                auto it = std::find(_userCheckers.begin(), _userCheckers.end(), vt.killed);
+                                _userCheckers.erase(it);
+                                delete (*it);
+                            }
+                        }
+                        walk = true;
+                        break;
+                    }
+                }
+            }
+            if ((pCheckerClicked == nullptr) && walk) {
+                checkersSet::iterator it;
+                if (_checkerSelected->user)
+                    it = std::find(_userCheckers.begin(), _userCheckers.end(), _checkerSelected);
+                else
+                    it = std::find(_foeCheckers.begin(), _foeCheckers.end(), _checkerSelected);
+                _checkBoard[_checkerSelected->pos] = nullptr;
+                (*it)->pos = newPos;
+                _checkBoard[newPos] = _checkerSelected;
+                _isSelected = false;
+                _checkerSelected = nullptr;
+                return true;
+            }
+            else
+                _isSelected = false;
+        }
+        else //choose checker
+        {
+            if (pCheckerClicked != nullptr){
+                if ((pCheckerClicked->user && _isUser) || !(pCheckerClicked->user || _isUser)) {
+                    _checkerSelected = pCheckerClicked;
+                    _isSelected = true;
+                }
+            }
+        }
+        return false;
+    }
+    return false;
+}
 bool Model::receive(fromController dat) {
     _inputSigs.isUpdateCords = dat.mouseMove;
     _inputSigs.mouseCords = dat.mouse;
@@ -79,58 +211,33 @@ bool Model::changeState() {
     switch (_inputSigs.keyType) {
         case SIG_SET:
             _msg = "Enter pressed\n";
+            if (_inputSigs.isKeyPressed){
+                for (auto it = _userCheckers.begin(); it != _userCheckers.end(); it++){
+                    std::cout << (*it)->pos.let << (*it)->pos.dig << " ";
+                }
+                std::cout << std::endl;
+            }
             break;
         default:
             break;
     }
     if (_inputSigs.isClicked)
     {
-        if (_isUser)
+        _msg = "";
+        _inputSigs.isClicked = false;
+        _inputSigs.isKeyPressed = false;
+        _inputSigs.isUpdateCords = false;
+        if (_isPvP || _isUser)
         {
-            if (_inputSigs.mouseCords.x >= FIELD_TOPLEFTX && _inputSigs.mouseCords.x <= FIELD_BOTTOMRIGHTX
-                && _inputSigs.mouseCords.y >= FIELD_TOPLEFTY && _inputSigs.mouseCords.y <= FIELD_BOTTOMRIGHTY)
-            {
-                int col = (_inputSigs.mouseCords.x - FIELD_TOPLEFTX) *
-                          double(8.0 / (FIELD_BOTTOMRIGHTX - FIELD_TOPLEFTX));
-                int row = (_inputSigs.mouseCords.y - FIELD_TOPLEFTY) *
-                          double(8.0 / (FIELD_BOTTOMRIGHTY - FIELD_TOPLEFTY));
-                checkerPos newPos = posFromDigTab(row, col);
-                checkerObject* pchk = _checkBoard[{newPos.let, newPos.dig}];
-                if (_isSelected)
-                {
-                    std::cout << "Move\n";
-                    if (pchk == nullptr) {
-                        auto it = _userCheckers[_checkerSelected->pos];
-                        it.pos = newPos;
-
-                        _isSelected = false;
-                        _checkerSelected = nullptr;
-                    }
-                    else
-                        _isSelected = false;
-                }
-                else
-                {
-                    std::cout << "Take\n";
-                    if (pchk != nullptr){
-                        if (pchk->user) {
-                            _checkerSelected = pchk;
-                            _isSelected = true;
-                        }
-                    }
-                    else
-                        std::cout << pchk;
-                }
+            if(playerTurn()) {
+                _isUser = !_isUser;
+                _isWhite = !_isWhite;
             }
         }
     }
     // send to View
     bool ret = this->send();
     // set defaults
-    _msg = "";
-    _inputSigs.isClicked = false;
-    _inputSigs.isKeyPressed = false;
-    _inputSigs.isUpdateCords = false;
     return ret;
 }
 
@@ -143,23 +250,22 @@ bool Model::send() {
     std::vector<int> foePos;
     std::vector<int> userPos;
     for (auto it = _foeCheckers.begin(); it != _foeCheckers.end(); it++){
-        int row = abs(int(it->first.dig) - int('8'));
-        int col = abs(int(it->first.let) - int('A'));
+        int row = abs(int((*it)->pos.dig) - int('8'));
+        int col = abs(int((*it)->pos.let) - int('A'));
         foePos.push_back(row * 8 + col);
     }
     for (auto it = _userCheckers.begin(); it != _userCheckers.end(); it++){
-        int row = abs(int(it->first.dig) - int('8'));
-        int col = abs(int(it->first.let) - int('A'));
+        int row = abs(int((*it)->pos.dig) - int('8'));
+        int col = abs(int((*it)->pos.let) - int('A'));
         userPos.push_back(row * 8 + col);
     }
 
-    if (_inputSigs.mouseCords.x >= FIELD_TOPLEFTX && _inputSigs.mouseCords.x <= FIELD_BOTTOMRIGHTX
-    && _inputSigs.mouseCords.y >= FIELD_TOPLEFTY && _inputSigs.mouseCords.y <= FIELD_BOTTOMRIGHTY)
+    if (isWithinField(_inputSigs.mouseCords))
     {
-        int x = (_inputSigs.mouseCords.x - FIELD_TOPLEFTX) * double(8.0/ (FIELD_BOTTOMRIGHTX - FIELD_TOPLEFTX));
-        int y = (_inputSigs.mouseCords.y - FIELD_TOPLEFTY) * double(8.0/ (FIELD_BOTTOMRIGHTY - FIELD_TOPLEFTY));
-        dm->pointArea = y * 8 + x;
-        std::cout << dm->pointArea << std::endl;
+       int x, y;
+       cordsToPosInts(_inputSigs.mouseCords, y, x);
+       dm->pointArea = y * 8 + x;
+   //     std::cout << dm->pointArea << std::endl;
     }
     else dm->pointArea = -1;
 
@@ -173,6 +279,5 @@ bool Model::send() {
     dm->userCheckersPos = userPos;
     return (_pView->get(dm));
 }
-
 
 

@@ -9,6 +9,8 @@
 #include <map>
 #include <vector>
 #include <set>
+#include <list>
+#include <algorithm>
 #include "../view/View.h"
 #define SIG_UP 0
 #define SIG_RIGHT 1
@@ -36,7 +38,7 @@ struct checkerObject{
     checkerPos pos;
 };
 typedef std::map<checkerPos, checkerObject* > Board;
-typedef std::map<checkerPos, checkerObject> checkersSet;
+typedef std::list<checkerObject* > checkersSet;
 struct fromController{
     int sig;
     bool mouseMove;
@@ -48,6 +50,10 @@ struct InputSigs{
     bool isClicked;
     int keyType;
     POINT mouseCords;
+};
+struct StrikePath{
+    checkerObject* killed;
+    checkerPos killerPosNew;
 };
 class Model {
 public:
@@ -63,11 +69,32 @@ private:
     InputSigs _inputSigs;
     bool _isFinishProc;
     bool _isMenu;
+    bool _isPvP;
     bool _isSelected;
     bool _isUser;
+    bool _isWhite;
     std::string _msg;
+
     bool changeState();
     bool send();
+    bool playerTurn();
+    void possibleMoves(checkerPos pos, std::list<std::vector<StrikePath>> & posMoves);
+    /*
+     * direction vals:
+     * 0 = right up
+     * 1 = right down
+     * 2 = left down
+     * 3 = left up
+     * */
+    bool strikeSingle(checkerPos enemy, int direction);
+    /*
+   * direction vals:
+   * 0 = right up
+   * 1 = right down
+   * 2 = left down
+   * 3 = left up
+   * */
+    static bool nextToPos(checkerPos p, checkerPos* pnext ,int direction);
 };
 
 

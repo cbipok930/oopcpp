@@ -5,8 +5,8 @@
 #include <objidl.h>
 #include <vector>
 #include <csignal>
-#define WIDTH 700//116
-#define HEIGHT 480//66
+#define WIDTH 920//116
+#define HEIGHT 920//66
 #define MOUSELEAVE      0x0001
 #define MOUSEHOVER      0x0002
 Controller* GetController(LONG_PTR dat){
@@ -89,13 +89,21 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR commandLine, INT iCmdSh
 
     auto board = new Gdiplus::Bitmap(L"..\\dat\\shashechnaya-doska.jpg");
     auto checker = new Gdiplus::Bitmap(L"..\\dat\\draughts64.png");
-    if (board->GetLastStatus() != Gdiplus::Ok || checker->GetLastStatus() != Ok){
+    auto cover = new Gdiplus::Bitmap(L"..\\dat\\cover.png");
+    if (board->GetLastStatus() != Gdiplus::Ok || checker->GetLastStatus() != Ok || cover->GetLastStatus() != Ok){
         MessageBeep(MB_ICONERROR);
         MessageBoxA(nullptr, "Corrupt data", reinterpret_cast<LPCSTR>(appName), MB_OK | MB_ICONERROR);
         return 1;
     }
 
-    auto view = new View(&hwnd, &hDc, &msg, *board, *checker);
+    auto icon = new Gdiplus::Bitmap(L"..\\dat\\shot.jpg");
+    if (icon->GetLastStatus() == Ok) {
+        HICON hIcon;
+        icon->GetHICON(&hIcon);
+        SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM) hIcon);
+    }
+
+    auto view = new View(&hwnd, &hDc, &msg, *board, *checker, *cover);
     auto model = new Model(view);
     auto controller = new Controller(model);
     auto vecToProc = new std::vector<LONG_PTR>;
@@ -116,5 +124,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR commandLine, INT iCmdSh
     GdiplusShutdown(gdiplusToken);
     ReleaseDC(hwnd, hDc);
     DeleteObject(&board);
+    DeleteObject(&cover);
+    DeleteObject(&checker);
     return msg.wParam;
 }

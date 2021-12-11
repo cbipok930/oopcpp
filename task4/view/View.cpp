@@ -3,31 +3,45 @@
 //
 
 #include "View.h"
-View::View(HWND *hWnd, HDC* hdc, MSG *msg, const Gdiplus::Bitmap &imgB, const Gdiplus::Bitmap &imgC) {
+View::View(HWND *hWnd, HDC *hdc, MSG *msg, const Gdiplus::Bitmap &imgB, const Gdiplus::Bitmap &imgC,
+           const Gdiplus::Bitmap &imgCv) {
     using namespace Gdiplus;
     _hWndP = hWnd;
     _hdcP = hdc;
     _boardImgP = imgB.Clone();
     _checkerImgP = imgC.Clone();
+    _coverImgP = imgCv.Clone();
     _msgP = msg;
     _colorMatrixBlack = {
-            0.33f, 0.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 0.23f, 0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 0.23f, 0.0f, 0.0f,
+            0.16, 0.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 0.16, 0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.16, 0.0f, 0.0f,
             0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+            0, 0, 0, 0.0f, 1.0f};
+    _colorMatrixWhite = {
+            1.9, 0.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 1.9, 0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.9, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+            0, 0, 0, 0.0f, 1.0f};
+}
+void View::drawChecker(Gdiplus::Graphics *g, Gdiplus::ImageAttributes *att1,
+                       Gdiplus::ImageAttributes *att2, int pos) {
+    int oY = FIELD_TOPLEFTY + 3 + (pos / 8) * 41.6;
+    int oX = FIELD_TOPLEFTX + 3 + (pos % 8) * 41.6;
+    g->DrawImage(_checkerImgP,
+                 Gdiplus::Rect(oX, oY, _checkerImgP->GetWidth(), _checkerImgP->GetHeight()),
+                 0, 0, _checkerImgP->GetWidth(), _checkerImgP->GetHeight(),
+                 Gdiplus::UnitPixel, att1);
+    g->DrawImage(_coverImgP, Gdiplus::Rect(oX, oY, _checkerImgP->GetWidth(), _checkerImgP->GetHeight()),
+                 0, 0, _checkerImgP->GetWidth(), _checkerImgP->GetHeight(),
+                 Gdiplus::UnitPixel, att2);
 }
 bool View::get(DataModel *dat) {
     _whiteCheckersPos = dat->userCheckersPos;
     _blackCheckersPos = dat->foeCheckersPos;
     _pointArea = dat->pointArea;
     _selArea = dat->selArea;
-    if(dat->keyPressed){
-        std::cout << dat->msg << std::endl;
-    }
-    if(dat->updateCords){
-        std::cout << dat->mouseCords.x << " " << dat->mouseCords.y << std::endl;
-    }
     return true;
 }
 
@@ -35,39 +49,39 @@ void View::show() {
     using namespace Gdiplus;
     RECT rect;
     GetWindowRect(*_hWndP, &rect);
-    auto imAtt = new ImageAttributes;
-    imAtt->SetColorKey(
-            Color(254, 254, 254),
-            Color(255, 255, 255),
-            ColorAdjustTypeBitmap);
+    auto imAttWhite = new ImageAttributes;
+    imAttWhite->SetColorKey(
+            Color(0, 253, 0),
+            Color(0, 255, 0),
+            Gdiplus::ColorAdjustTypeDefault);
+    imAttWhite->SetColorMatrices(&_colorMatrixWhite, nullptr);
 
     auto imAttBlack = new ImageAttributes;
     imAttBlack->SetColorKey(
-            Color(254, 254, 254),
-            Color(255, 255, 255),
+            Color(0, 253, 0),
+            Color(0, 255, 0),
             Gdiplus::ColorAdjustTypeDefault);
     imAttBlack->SetColorMatrices(&_colorMatrixBlack, nullptr);
+
+    auto imAtt = new ImageAttributes;
+    imAtt->SetColorKey(
+            Color(0, 253, 0),
+            Color(0, 255, 0),
+            Gdiplus::ColorAdjustTypeDefault);
 
     auto result = new Bitmap(_boardImgP->GetWidth() + FIELD_OX, _boardImgP->GetHeight() + FIELD_OY);
     auto g = Graphics::FromImage(result);
     auto graphics = new Graphics(*_hdcP);
     g->DrawImage(_boardImgP, FIELD_OX, FIELD_OY);
+
     for (auto it = _whiteCheckersPos.begin(); it != _whiteCheckersPos.end(); it++){
-        int oY = FIELD_TOPLEFTY + 3 + ((*it) / 8) * 41.6;
-        int oX = FIELD_TOPLEFTX + 3 + ((*it) % 8) * 41.6;
-        g->DrawImage(_checkerImgP,
-                     Rect(oX, oY, _checkerImgP->GetWidth(), _checkerImgP->GetHeight()),
-                     0, 0, _checkerImgP->GetWidth(), _checkerImgP->GetHeight(),
-                     Gdiplus::UnitPixel, imAtt);
+        drawChecker(g, imAttWhite, imAtt, (*it));
     }
+
     for (auto it = _blackCheckersPos.begin(); it != _blackCheckersPos.end(); it++){
-        int oY = FIELD_TOPLEFTY + 3 + ((*it) / 8) * 41.6;
-        int oX = FIELD_TOPLEFTX + 3 + ((*it) % 8) * 41.6;
-        g->DrawImage(_checkerImgP,
-                     Rect(oX, oY, _checkerImgP->GetWidth(), _checkerImgP->GetHeight()),
-                     0, 0, _checkerImgP->GetWidth(), _checkerImgP->GetHeight(),
-                     Gdiplus::UnitPixel, imAttBlack);
+        drawChecker(g, imAttBlack, imAtt, (*it));
     }
+
     if (_pointArea > -1){
         auto pen = new Pen(Color(255, 255, 0, 255));
         pen->SetWidth(3.0);
@@ -77,6 +91,7 @@ void View::show() {
         delete pen;
         delete rect;
     }
+
     if (_selArea > -1){
         auto pen = new Pen(Color(200, 0, 255, 0));
         pen->SetWidth(5.0);
@@ -86,11 +101,13 @@ void View::show() {
         delete pen;
         delete rect;
     }
+    graphics->ScaleTransform(BOARD_SCALE, BOARD_SCALE);
     graphics->DrawImage(result, 0, 0);
-    delete imAtt;
+    delete imAttWhite;
     delete imAttBlack;
     delete g;
     delete graphics;
     delete result;
 }
+
 
