@@ -42,6 +42,8 @@ bool View::get(DataModel *dat) {
     _blackCheckersPos = dat->foeCheckersPos;
     _pointArea = dat->pointArea;
     _selArea = dat->selArea;
+    _damkasPos = dat->damkasPos;
+    delete dat;
     return true;
 }
 
@@ -77,29 +79,37 @@ void View::show() {
     for (auto it = _whiteCheckersPos.begin(); it != _whiteCheckersPos.end(); it++){
         drawChecker(g, imAttWhite, imAtt, (*it));
     }
-
     for (auto it = _blackCheckersPos.begin(); it != _blackCheckersPos.end(); it++){
         drawChecker(g, imAttBlack, imAtt, (*it));
     }
-
+    if (!_damkasPos.empty()){
+        for (auto it = _damkasPos.begin(); it != _damkasPos.end(); it++){
+            auto pen = new Pen(Color(255, 254, 32, 32));
+            pen->SetWidth(6.0);
+            auto rec = new Rect((FIELD_TOPLEFTX + (*it % 8) * 41.6) + 3, (FIELD_TOPLEFTY + (*it / 8) * 41.6) + 3,
+                                6, 6);
+            g->DrawEllipse(pen, *rec);
+            delete pen;
+            delete rec;
+        }
+    }
     if (_pointArea > -1){
         auto pen = new Pen(Color(255, 255, 0, 255));
         pen->SetWidth(3.0);
-        auto rect = new Rect((FIELD_TOPLEFTX + (_pointArea % 8) * 41.6) + 3, (FIELD_TOPLEFTY + (_pointArea / 8) * 41.6) + 3,
+        auto rec = new Rect((FIELD_TOPLEFTX + (_pointArea % 8) * 41.6) + 3, (FIELD_TOPLEFTY + (_pointArea / 8) * 41.6) + 3,
                              35, 35);
-        g->DrawRectangle(pen, *rect);
+        g->DrawRectangle(pen, *rec);
         delete pen;
-        delete rect;
+        delete rec;
     }
-
     if (_selArea > -1){
         auto pen = new Pen(Color(200, 0, 255, 0));
         pen->SetWidth(5.0);
-        auto rect = new Rect((FIELD_TOPLEFTX + (_selArea % 8) * 41.6), (FIELD_TOPLEFTY + (_selArea / 8) * 41.6),
+        auto rec = new Rect((FIELD_TOPLEFTX + (_selArea % 8) * 41.6), (FIELD_TOPLEFTY + (_selArea / 8) * 41.6),
                              43, 43);
-        g->DrawEllipse(pen, *rect);
+        g->DrawEllipse(pen, *rec);
         delete pen;
-        delete rect;
+        delete rec;
     }
     graphics->ScaleTransform(BOARD_SCALE, BOARD_SCALE);
     graphics->DrawImage(result, 0, 0);

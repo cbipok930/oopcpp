@@ -17,7 +17,7 @@
 #define FIELD_TOPLEFTY (16 + FIELD_OY)
 #define FIELD_BOTTOMRIGHTX (349 + FIELD_OX)
 #define FIELD_BOTTOMRIGHTY (349 + FIELD_OY)
-#define BOARD_SCALE 1
+#define BOARD_SCALE 1.7
 
 class Model;
 class DataModel{
@@ -30,6 +30,7 @@ public:
     bool _menu;
     std::vector<int> userCheckersPos;
     std::vector<int> foeCheckersPos;
+    std::vector<int> damkasPos;
     int pointArea;
     int selArea;
 };
@@ -50,6 +51,7 @@ private:
     MSG* _msgP;
     std::vector<int> _whiteCheckersPos;
     std::vector<int> _blackCheckersPos;
+    std::vector<int> _damkasPos;
     int _pointArea;
     int _selArea;
 

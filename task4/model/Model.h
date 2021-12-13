@@ -35,6 +35,7 @@ struct checkerPos{
 };
 struct checkerObject{
     bool user;
+    bool damka;
     checkerPos pos;
 };
 typedef std::map<checkerPos, checkerObject* > Board;

@@ -71,7 +71,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR commandLine, INT iCmdSh
         MessageBoxA(nullptr, "Failed to register class", "Error", MB_OK | MB_ICONERROR);
         return 1;
     }
-    HWND hwnd = CreateWindowExW(WS_EX_APPWINDOW, L"MainWind", reinterpret_cast<LPCWSTR>("Checkers"),
+    HWND hwnd = CreateWindowExW(WS_EX_APPWINDOW, L"MainWind", L"Checkers",
                                WS_OVERLAPPEDWINDOW /*WS_POPUP*/ | WS_VISIBLE,
                                 CW_USEDEFAULT, CW_USEDEFAULT, WIDTH, HEIGHT,
                     nullptr,

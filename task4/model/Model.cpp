@@ -4,8 +4,10 @@
 
 #include "Model.h"
 void initChecker(checkersSet& set, Board& board, checkerPos& pos, bool side){
-    auto pch = new checkerObject{side, pos};
+    auto pch = new checkerObject{side, false, pos};
     set.push_back(pch);
+    if (pch->pos.dig == '2')
+        pch->damka = true;
     board[pos] = pch;
 }
 checkerPos posFromIntsToChars(int row, int col){
@@ -102,14 +104,34 @@ void Model::possibleMoves(checkerPos pos, std::list<std::vector<StrikePath>> & p
     do {
         StrikePath move = {nullptr, {0,0}};
         if (nextToPos(pos, &move.killerPosNew, dirStart)) {// not border
-            if (_checkBoard[move.killerPosNew] == nullptr){
-                if((dirStart == 0  || dirStart == 3) && _isWhite || (dirStart == 1 || dirStart == 2) && !_isWhite){//free
+            if (_checkBoard[move.killerPosNew] == nullptr){ //free
                 std::vector<StrikePath> free_vec;
+                if((dirStart == 0  || dirStart == 3) && _isWhite && !_checkBoard[pos]->damka
+                || (dirStart == 1 || dirStart == 2) && !_isWhite && !_checkBoard[pos]->damka
+                || _checkBoard[pos]->damka){
                 free_vec.push_back(move);
+                while (nextToPos(move.killerPosNew, &move.killerPosNew, dirStart) && _checkBoard[pos]->damka){
+                    if (_checkBoard[move.killerPosNew] == nullptr)
+                        free_vec.push_back(move);
+                    else
+                        break;
+                }
                 posMoves.push_back(free_vec);
             }
         }
             else if (_checkBoard[move.killerPosNew]->user != _isUser){//enemy
+                StrikePath moveStrike = {nullptr, {0,0}};
+                if(nextToPos(move.killerPosNew, &moveStrike.killerPosNew, dirStart)) {
+                    if (_checkBoard[moveStrike.killerPosNew] == nullptr) {
+                        moveStrike.killed = _checkBoard[move.killerPosNew];
+                        std::vector<StrikePath> strike_vec;
+                        strike_vec.push_back(moveStrike);
+                        posMoves.push_back(strike_vec);
+                        continue;
+                    }
+                }
+            }
+            if (_checkBoard[pos]->damka && _checkBoard[move.killerPosNew]->user != _isUser){//dop
                 StrikePath moveStrike = {nullptr, {0,0}};
                 if(nextToPos(move.killerPosNew, &moveStrike.killerPosNew, dirStart)) {
                     if (_checkBoard[moveStrike.killerPosNew] == nullptr) {
@@ -168,6 +190,10 @@ bool Model::playerTurn() {
                 _checkBoard[_checkerSelected->pos] = nullptr;
                 (*it)->pos = newPos;
                 _checkBoard[newPos] = _checkerSelected;
+                if (_isWhite && newPos.dig == '8' || !_isWhite && newPos.dig == '1'){
+                    _checkerSelected->damka = true;
+                    std::cout << _checkerSelected <<" "<< newPos.let << newPos.dig << " is damka" << std::endl;
+                }
                 _isSelected = false;
                 _checkerSelected = nullptr;
                 return true;
@@ -249,17 +275,21 @@ bool Model::send() {
     dm->mouseCords = _inputSigs.mouseCords;
     std::vector<int> foePos;
     std::vector<int> userPos;
+    std::vector<int> damkasPos;
     for (auto it = _foeCheckers.begin(); it != _foeCheckers.end(); it++){
         int row = abs(int((*it)->pos.dig) - int('8'));
         int col = abs(int((*it)->pos.let) - int('A'));
         foePos.push_back(row * 8 + col);
+        if ((*it)->damka)
+            damkasPos.push_back(row * 8 + col);
     }
     for (auto it = _userCheckers.begin(); it != _userCheckers.end(); it++){
         int row = abs(int((*it)->pos.dig) - int('8'));
         int col = abs(int((*it)->pos.let) - int('A'));
         userPos.push_back(row * 8 + col);
+        if ((*it)->damka)
+            damkasPos.push_back(row * 8 + col);
     }
-
     if (isWithinField(_inputSigs.mouseCords))
     {
        int x, y;
@@ -277,6 +307,7 @@ bool Model::send() {
     else dm->selArea = -1;
     dm->foeCheckersPos = foePos;
     dm->userCheckersPos = userPos;
+    dm->damkasPos = damkasPos;
     return (_pView->get(dm));
 }
 
