@@ -12,6 +12,7 @@ View::View(HWND *hWnd, HDC *hdc, MSG *msg, const Gdiplus::Bitmap &imgB, const Gd
     _checkerImgP = imgC.Clone();
     _coverImgP = imgCv.Clone();
     _msgP = msg;
+    _msg = "";
     _colorMatrixBlack = {
             0.16, 0.0f, 0.0f, 0.0f, 0.0f,
             0.0f, 0.16, 0.0f, 0.0f, 0.0f,
@@ -43,6 +44,7 @@ bool View::get(DataModel *dat) {
     _pointArea = dat->pointArea;
     _selArea = dat->selArea;
     _damkasPos = dat->damkasPos;
+    _msg = dat->msg;
     delete dat;
     return true;
 }
@@ -86,7 +88,7 @@ void View::show() {
         for (auto it = _damkasPos.begin(); it != _damkasPos.end(); it++){
             auto pen = new Pen(Color(255, 254, 32, 32));
             pen->SetWidth(6.0);
-            auto rec = new Rect((FIELD_TOPLEFTX + (*it % 8) * 41.6) + 3, (FIELD_TOPLEFTY + (*it / 8) * 41.6) + 3,
+            auto rec = new Rect((FIELD_TOPLEFTX + (*it % 8) * 41.6) + 17, (FIELD_TOPLEFTY + (*it / 8) * 41.6) + 17,
                                 6, 6);
             g->DrawEllipse(pen, *rec);
             delete pen;
@@ -94,30 +96,46 @@ void View::show() {
         }
     }
     if (_pointArea > -1){
-        auto pen = new Pen(Color(255, 255, 0, 255));
-        pen->SetWidth(3.0);
-        auto rec = new Rect((FIELD_TOPLEFTX + (_pointArea % 8) * 41.6) + 3, (FIELD_TOPLEFTY + (_pointArea / 8) * 41.6) + 3,
-                             35, 35);
+        auto pen = new Pen(Color(200, 100, 20, 255));
+        pen->SetWidth(2.0);
+        auto rec = new Rect((FIELD_TOPLEFTX + (_pointArea % 8) * 41.6) + 1, (FIELD_TOPLEFTY + (_pointArea / 8) * 41.6) + 1,
+                             40, 40);
+        auto solidBrush = new SolidBrush(Color(50, 100, 20, 240));
+        g->FillRectangle(solidBrush, (FIELD_TOPLEFTX + (_pointArea % 8) * 41.6) + 1, (FIELD_TOPLEFTY + (_pointArea / 8) * 41.6) + 1
+                         , 40, 40);
         g->DrawRectangle(pen, *rec);
         delete pen;
         delete rec;
+        delete solidBrush;
     }
     if (_selArea > -1){
-        auto pen = new Pen(Color(200, 0, 255, 0));
-        pen->SetWidth(5.0);
-        auto rec = new Rect((FIELD_TOPLEFTX + (_selArea % 8) * 41.6), (FIELD_TOPLEFTY + (_selArea / 8) * 41.6),
-                             43, 43);
-        g->DrawEllipse(pen, *rec);
+        auto pen = new Pen(Color(200, 50, 200, 50));
+        pen->SetWidth(2.0);
+        auto rec = new Rect((FIELD_TOPLEFTX + (_selArea % 8) * 41.6) + 1, (FIELD_TOPLEFTY + (_selArea / 8) * 41.6) + 1,
+                            40, 40);
+        auto solidBrush = new SolidBrush(Color(50, 50, 180, 50));
+        g->FillRectangle(solidBrush, (FIELD_TOPLEFTX + (_selArea % 8) * 41.6) + 1, (FIELD_TOPLEFTY + (_selArea / 8) * 41.6) + 1
+                , 40, 40);
+        g->DrawRectangle(pen, *rec);
         delete pen;
         delete rec;
+        delete solidBrush;
     }
     graphics->ScaleTransform(BOARD_SCALE, BOARD_SCALE);
     graphics->DrawImage(result, 0, 0);
     delete imAttWhite;
     delete imAttBlack;
+    delete imAtt;
     delete g;
     delete graphics;
     delete result;
+    if (_msg == "Player 2 won" || _msg == "Player 1 won"){
+        MessageBeep(MB_ICONINFORMATION);
+        if (_msg == "Player 2 won")
+            MessageBoxA(nullptr, "Game over", "Player 2 won", MB_OK | MB_ICONINFORMATION);
+        else
+            MessageBoxA(nullptr, "Game over", "Player 1 won", MB_OK | MB_ICONINFORMATION);
+    }
 }
 
 

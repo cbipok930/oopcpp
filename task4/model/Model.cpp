@@ -3,11 +3,11 @@
 //
 
 #include "Model.h"
+
+#include <random>
 void initChecker(checkersSet& set, Board& board, checkerPos& pos, bool side){
     auto pch = new checkerObject{side, false, pos};
     set.push_back(pch);
-    if (pch->pos.dig == '2')
-        pch->damka = true;
     board[pos] = pch;
 }
 checkerPos posFromIntsToChars(int row, int col){
@@ -35,11 +35,11 @@ Model::Model(View *pv) {
 
     _checkerSelected= nullptr;
     _isFinishProc = false;
-    _isMenu = false;
+    _isFinal = false;
     _isSelected = false;
     _isUser = true;
     _isWhite = true;
-    _isPvP = true;
+    _isPvP = false;
     _msg = "";
     for (char l = 'A'; l <= 'H'; l++) {
         for (char d = '1'; d <= '8'; d++) {
@@ -88,19 +88,10 @@ bool Model::nextToPos(checkerPos p, checkerPos* pnext, int direction){
     else
         return true;
 }
-bool Model::strikeSingle(checkerPos enemy, int direction) {
-    checkerPos next = {0, 0};
-    nextToPos(enemy, &next, direction);
-    if (_checkBoard[enemy] != nullptr){
-        if (_checkBoard[enemy]->user == !_isUser
-             && _checkBoard[next] == nullptr) {
-            return true;
-        }
-    }
-    return false;
-}
+
 void Model::possibleMoves(checkerPos pos, std::list<std::vector<StrikePath>> & posMoves) {
-    int dirStart = 0;
+    int randomDir = 0 + (rand() % static_cast<int>(3 - 0 + 1));
+    int dirStart = randomDir;
     do {
         StrikePath move = {nullptr, {0,0}};
         if (nextToPos(pos, &move.killerPosNew, dirStart)) {// not border
@@ -108,11 +99,24 @@ void Model::possibleMoves(checkerPos pos, std::list<std::vector<StrikePath>> & p
                 std::vector<StrikePath> free_vec;
                 if((dirStart == 0  || dirStart == 3) && _isWhite && !_checkBoard[pos]->damka
                 || (dirStart == 1 || dirStart == 2) && !_isWhite && !_checkBoard[pos]->damka
-                || _checkBoard[pos]->damka){
+                || _checkBoard[pos]->damka)
+                {
                 free_vec.push_back(move);
                 while (nextToPos(move.killerPosNew, &move.killerPosNew, dirStart) && _checkBoard[pos]->damka){
                     if (_checkBoard[move.killerPosNew] == nullptr)
                         free_vec.push_back(move);
+                    else if (_checkBoard[move.killerPosNew]->user != _isUser){
+                        StrikePath moveStrike = {nullptr, {0,0}};
+                        if(nextToPos(move.killerPosNew, &moveStrike.killerPosNew, dirStart)) {
+                            if (_checkBoard[moveStrike.killerPosNew] == nullptr) {
+                                moveStrike.killed = _checkBoard[move.killerPosNew];
+                                std::vector<StrikePath> strike_vec;
+                                strike_vec.push_back(moveStrike);
+                                posMoves.push_back(strike_vec);
+                            }
+                        }
+                        break;
+                    }
                     else
                         break;
                 }
@@ -127,26 +131,84 @@ void Model::possibleMoves(checkerPos pos, std::list<std::vector<StrikePath>> & p
                         std::vector<StrikePath> strike_vec;
                         strike_vec.push_back(moveStrike);
                         posMoves.push_back(strike_vec);
-                        continue;
-                    }
-                }
-            }
-            if (_checkBoard[pos]->damka && _checkBoard[move.killerPosNew]->user != _isUser){//dop
-                StrikePath moveStrike = {nullptr, {0,0}};
-                if(nextToPos(move.killerPosNew, &moveStrike.killerPosNew, dirStart)) {
-                    if (_checkBoard[moveStrike.killerPosNew] == nullptr) {
-                        moveStrike.killed = _checkBoard[move.killerPosNew];
-                        std::vector<StrikePath> strike_vec;
-                        strike_vec.push_back(moveStrike);
-                        posMoves.push_back(strike_vec);
                     }
                 }
             }
         }
         dirStart = (dirStart + 1)%4;
-    } while (dirStart != 0);
+    } while (dirStart != randomDir);
 }
-
+bool Model::botTurn() {
+    std::map<checkerObject*, std::list<std::vector<StrikePath>>> movesForCheckers;
+    std::vector<checkerObject*> tmpvec;
+    for(auto & ch : _foeCheckers){
+        tmpvec.push_back(ch);
+    }
+    std::shuffle(tmpvec.begin(), tmpvec.end(), std::mt19937(std::random_device()()));
+    std::list<checkerObject*> tmplist;
+    for(int i = 0; i < _foeCheckers.size(); i++){
+        checkerObject* it = tmpvec[0];
+        tmpvec.erase(tmpvec.cbegin());
+        tmplist.push_back(it);
+    }
+    _foeCheckers = tmplist;
+    for (auto & ch : _foeCheckers){
+        std::list<std::vector<StrikePath>> moves;
+        possibleMoves(ch->pos, moves);
+        movesForCheckers[ch] = moves;
+        for (auto & vec : moves){
+            for (auto & move : vec){
+                if ((move.killerPosNew.dig == '8' && _isWhite || move.killerPosNew.dig == '1' && !_isWhite) && !ch->damka){
+                    if (move.killed != nullptr){
+                        _checkBoard[move.killed->pos] = nullptr;
+                        auto it = std::find(_userCheckers.begin(), _userCheckers.end(), move.killed);
+                        _userCheckers.erase(it);
+                        delete (*it);
+                    }
+                    _checkBoard[ch->pos] = nullptr;
+                    ch->pos = move.killerPosNew;
+                    _checkBoard[ch->pos] = ch;
+                    if ((_isWhite && ch->pos.dig == '8' || !_isWhite && ch->pos.dig == '1') && !ch->damka){
+                        ch->damka = true;
+//                        std::cout << _checkerSelected <<" "<< ch->pos.let << ch->pos.dig << " is damka" << std::endl;
+                    }
+                    return true;
+                }
+                if (move.killed != nullptr){
+                    _checkBoard[move.killed->pos] = nullptr;
+                    auto it = std::find(_userCheckers.begin(), _userCheckers.end(), move.killed);
+                    _userCheckers.erase(it);
+                    delete (*it);
+                    _checkBoard[ch->pos] = nullptr;
+                    ch->pos = move.killerPosNew;
+                    _checkBoard[ch->pos] = ch;
+                    if ((_isWhite && ch->pos.dig == '8' || !_isWhite && ch->pos.dig == '1') && !ch->damka){
+                        ch->damka = true;
+//                        std::cout << _checkerSelected <<" "<< ch->pos.let << ch->pos.dig << " is damka" << std::endl;
+                    }
+                    return true;
+                }
+            }
+        }
+    }
+  //  std::shuffle(_foeCheckers.begin(), _foeCheckers.end(), 321);
+    for (auto & ch : _foeCheckers){
+        std::list<std::vector<StrikePath>> moves = movesForCheckers[ch];
+        for (auto & vec : moves){
+            for (auto & move : vec) {
+                _checkBoard[ch->pos] = nullptr;
+                ch->pos = move.killerPosNew;
+                _checkBoard[ch->pos] = ch;
+                if (_isWhite && ch->pos.dig == '8' || !_isWhite && ch->pos.dig == '1'){
+                    ch->damka = true;
+                    std::cout << _checkerSelected <<" "<< ch->pos.let << ch->pos.dig << " is damka" << std::endl;
+                }
+                return true;
+            }
+        }
+    }
+    return true;
+}
 bool Model::playerTurn() {
     if (isWithinField(_inputSigs.mouseCords))
     {
@@ -154,7 +216,7 @@ bool Model::playerTurn() {
         cordsToPosInts(_inputSigs.mouseCords, row, col);
         checkerPos newPos = posFromIntsToChars(row, col);
         checkerObject* pCheckerClicked = _checkBoard[newPos];
-        std::cout << "Clicked at " << pCheckerClicked << std::endl;
+//        std::cout << "Clicked at " << pCheckerClicked << std::endl;
         if (_isSelected)//checker's move
         {
             std::list<std::vector<StrikePath>> moves;
@@ -192,7 +254,7 @@ bool Model::playerTurn() {
                 _checkBoard[newPos] = _checkerSelected;
                 if (_isWhite && newPos.dig == '8' || !_isWhite && newPos.dig == '1'){
                     _checkerSelected->damka = true;
-                    std::cout << _checkerSelected <<" "<< newPos.let << newPos.dig << " is damka" << std::endl;
+//                    std::cout << _checkerSelected <<" "<< newPos.let << newPos.dig << " is damka" << std::endl;
                 }
                 _isSelected = false;
                 _checkerSelected = nullptr;
@@ -233,37 +295,80 @@ switch (dat.sig) {
     }
 }
 bool Model::changeState() {
-    std::string keyString;
-    switch (_inputSigs.keyType) {
-        case SIG_SET:
-            _msg = "Enter pressed\n";
-            if (_inputSigs.isKeyPressed){
-                for (auto it = _userCheckers.begin(); it != _userCheckers.end(); it++){
-                    std::cout << (*it)->pos.let << (*it)->pos.dig << " ";
+    if (_isFinishProc)
+        return false;
+    _msg = "";
+    if (!_isFinal) {
+        if (_foeCheckers.empty() || _userCheckers.empty()) {
+            _msg = (_foeCheckers.empty()) ? "Player 1 won" : "Player 2 won";
+            _isFinal = true;
+            bool ret = this->send();
+            return ret;
+        }
+        if (_isUser) {
+            bool noMoves = true;
+            for (auto &ch: _userCheckers) {
+                std::list<std::vector<StrikePath>> moves;
+                possibleMoves(ch->pos, moves);
+                if (!moves.empty()) {
+                    noMoves = false;
+                    break;
                 }
-                std::cout << std::endl;
             }
-            break;
-        default:
-            break;
+            if (noMoves) {
+                _isFinal = true;
+                _msg = "Player 2 won";
+                bool ret = this->send();
+                return ret;
+            }
+        }
+        if (!_isUser) {
+            bool noMoves = true;
+            for (auto &ch: _foeCheckers) {
+                std::list<std::vector<StrikePath>> moves;
+                possibleMoves(ch->pos, moves);
+                if (!moves.empty()) {
+                    noMoves = false;
+                    break;
+                }
+            }
+            if (noMoves) {
+                _isFinal = true;
+                _msg = "Player 1 won";
+                bool ret = this->send();
+                return ret;
+            }
+        }
+
+        if (_inputSigs.isClicked) {
+            _msg = "";
+            _inputSigs.isClicked = false;
+            _inputSigs.isKeyPressed = false;
+            _inputSigs.isUpdateCords = false;
+            if (_isPvP || _isUser) {
+                if (playerTurn()) {
+                    _isUser = !_isUser;
+                    _isWhite = !_isWhite;
+                    bool ret = this->send();
+                    return ret;
+                }
+            }
+        }
+        if (!_isUser && !_isPvP) {
+            _inputSigs.isClicked = false;
+            _inputSigs.isKeyPressed = false;
+            _inputSigs.isUpdateCords = false;
+            botTurn();
+            _isWhite = !_isWhite;
+            _isUser = !_isUser;
+        }
     }
-    if (_inputSigs.isClicked)
-    {
-        _msg = "";
+    else{
         _inputSigs.isClicked = false;
         _inputSigs.isKeyPressed = false;
         _inputSigs.isUpdateCords = false;
-        if (_isPvP || _isUser)
-        {
-            if(playerTurn()) {
-                _isUser = !_isUser;
-                _isWhite = !_isWhite;
-            }
-        }
     }
-    // send to View
     bool ret = this->send();
-    // set defaults
     return ret;
 }
 
@@ -290,7 +395,7 @@ bool Model::send() {
         if ((*it)->damka)
             damkasPos.push_back(row * 8 + col);
     }
-    if (isWithinField(_inputSigs.mouseCords))
+    if (isWithinField(_inputSigs.mouseCords) && _inputSigs.isUpdateCords)
     {
        int x, y;
        cordsToPosInts(_inputSigs.mouseCords, y, x);

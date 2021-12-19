@@ -11,6 +11,7 @@
 #include <set>
 #include <list>
 #include <algorithm>
+#include <random>
 #include "../view/View.h"
 #define SIG_UP 0
 #define SIG_RIGHT 1
@@ -69,7 +70,7 @@ private:
     checkerObject* _checkerSelected;
     InputSigs _inputSigs;
     bool _isFinishProc;
-    bool _isMenu;
+    bool _isFinal;
     bool _isPvP;
     bool _isSelected;
     bool _isUser;
@@ -79,15 +80,8 @@ private:
     bool changeState();
     bool send();
     bool playerTurn();
+    bool botTurn();
     void possibleMoves(checkerPos pos, std::list<std::vector<StrikePath>> & posMoves);
-    /*
-     * direction vals:
-     * 0 = right up
-     * 1 = right down
-     * 2 = left down
-     * 3 = left up
-     * */
-    bool strikeSingle(checkerPos enemy, int direction);
     /*
    * direction vals:
    * 0 = right up

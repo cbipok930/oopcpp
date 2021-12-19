@@ -54,6 +54,7 @@ private:
     std::vector<int> _damkasPos;
     int _pointArea;
     int _selArea;
+    std::string _msg;
 
     void drawChecker(Gdiplus::Graphics *g, Gdiplus::ImageAttributes* att1,
                      Gdiplus::ImageAttributes* att2, int pos);
